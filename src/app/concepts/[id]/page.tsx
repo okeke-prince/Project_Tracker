@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Book, Folder, ArrowLeft } from "lucide-react";
 
-export default async function ConceptDetailPage({ params }: { params: { id: string } }) {
+export default async function ConceptDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const concept = await db.query.concepts.findFirst({
-    where: eq(concepts.id, params.id),
+    where: eq(concepts.id, id),
   });
 
   if (!concept) {

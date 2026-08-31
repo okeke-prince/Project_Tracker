@@ -5,11 +5,17 @@ import { books, projects, bookConcepts, conceptProjects, bookProjects } from "@/
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { bookSchema, projectSchema } from "./schema";
+import { uploadBookFile, deleteBookFile } from "@/lib/storage";
 
 export async function saveBook(prevState: any, formData: FormData) {
   try {
     const data = Object.fromEntries(formData.entries());
     const conceptIds = formData.getAll("conceptIds") as string[];
+    const projectIds = formData.getAll("projectIds") as string[];
+    const bookFile = formData.get("bookFile") as File | null;
+    
+    // Remove the file from data before validation to prevent Zod errors
+    delete data.bookFile;
     
     const validatedData = bookSchema.parse({
       ...data,
@@ -18,6 +24,11 @@ export async function saveBook(prevState: any, formData: FormData) {
 
     const isUpdate = !!validatedData.id;
     let bookId = validatedData.id;
+    
+    let uploadedFileUrl = undefined;
+    if (bookFile && bookFile.size > 0) {
+      uploadedFileUrl = await uploadBookFile(bookFile);
+    }
 
     const bookValues = {
       title: validatedData.title,
@@ -27,6 +38,7 @@ export async function saveBook(prevState: any, formData: FormData) {
       progress: validatedData.progress || 0,
       rating: validatedData.rating || null,
       coverUrl: validatedData.coverUrl || null,
+      ...(uploadedFileUrl ? { fileUrl: uploadedFileUrl } : {}),
       tags: validatedData.tags ? JSON.stringify(validatedData.tags.split(',').map(t => t.trim()).filter(Boolean)) : null,
       notes: validatedData.notes,
       updatedAt: new Date().toISOString(),
@@ -36,18 +48,28 @@ export async function saveBook(prevState: any, formData: FormData) {
       await db.update(books).set(bookValues).where(eq(books.id, bookId!));
       // Delete existing relationships
       await db.delete(bookConcepts).where(eq(bookConcepts.bookId, bookId!));
+      await db.delete(bookProjects).where(eq(bookProjects.bookId, bookId!));
     } else {
       const result = await db.insert(books).values(bookValues).returning({ id: books.id });
       bookId = result[0].id;
     }
 
-    // Insert new relationships
+    // Insert concept relationships
     if (conceptIds.length > 0) {
       const inserts = conceptIds.map(conceptId => ({
         bookId: bookId!,
         conceptId,
       }));
       await db.insert(bookConcepts).values(inserts);
+    }
+
+    // Insert project relationships
+    if (projectIds.length > 0) {
+      const inserts = projectIds.map(projectId => ({
+        bookId: bookId!,
+        projectId,
+      }));
+      await db.insert(bookProjects).values(inserts);
     }
 
     revalidatePath("/");
@@ -64,6 +86,17 @@ export async function saveBook(prevState: any, formData: FormData) {
 
 export async function deleteBook(id: string) {
   try {
+    // Fetch the book first so we can delete its file
+    const bookResult = await db.select().from(books).where(eq(books.id, id));
+    const book = bookResult[0];
+    
+    if (book?.fileUrl) {
+      await deleteBookFile(book.fileUrl).catch((err) => {
+        console.warn("Could not delete book file:", err);
+        // Don't block the delete if file cleanup fails
+      });
+    }
+    
     await db.delete(books).where(eq(books.id, id));
     revalidatePath("/");
     revalidatePath("/books");

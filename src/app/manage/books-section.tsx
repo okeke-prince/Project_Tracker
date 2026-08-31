@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BookForm } from "@/components/forms/book-form";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2 } from "lucide-react";
@@ -11,7 +11,7 @@ import { deleteBook } from "@/app/actions/mutations";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; // need to install this
 
-export function BooksSection({ books, concepts }: { books: any[], concepts: any[] }) {
+export function BooksSection({ books, concepts, projects }: { books: any[], concepts: any[], projects: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<any | null>(null);
 
@@ -37,14 +37,14 @@ export function BooksSection({ books, concepts }: { books: any[], concepts: any[
     <div className="space-y-4">
       <div className="flex justify-end">
         <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <SheetTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Add Book</Button>
+          <SheetTrigger className={buttonVariants({ variant: "default" })}>
+            <Plus className="mr-2 h-4 w-4" /> Add Book
           </SheetTrigger>
           <SheetContent className="sm:max-w-[540px] overflow-y-auto">
             <SheetHeader className="mb-6">
               <SheetTitle>Add New Book</SheetTitle>
             </SheetHeader>
-            <BookForm concepts={concepts} onSuccess={() => setIsAddOpen(false)} />
+            <BookForm concepts={concepts} projects={projects} onSuccess={() => setIsAddOpen(false)} />
           </SheetContent>
         </Sheet>
       </div>
@@ -76,14 +76,14 @@ export function BooksSection({ books, concepts }: { books: any[], concepts: any[
                 
                 <div className="flex items-center gap-2">
                   <Sheet open={editingBook?.id === book.id} onOpenChange={(open) => setEditingBook(open ? book : null)}>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="sm"><Edit2 className="mr-2 h-3 w-3" /> Edit</Button>
+                    <SheetTrigger className={buttonVariants({ variant: "outline", size: "sm" })}>
+                      <Edit2 className="mr-2 h-3 w-3" /> Edit
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-[540px] overflow-y-auto">
                       <SheetHeader className="mb-6">
                         <SheetTitle>Edit Book</SheetTitle>
                       </SheetHeader>
-                      <BookForm book={book} concepts={concepts} onSuccess={() => setEditingBook(null)} />
+                      <BookForm book={book} concepts={concepts} projects={projects} onSuccess={() => setEditingBook(null)} />
                     </SheetContent>
                   </Sheet>
                   

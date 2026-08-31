@@ -1,31 +1,37 @@
 import { db } from "@/db";
-import { books, bookConcepts, bookProjects } from "@/db/schema";
+import { books, concepts, projects, bookConcepts, bookProjects } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Compass, Folder, ArrowLeft, Star } from "lucide-react";
+import { Compass, Folder, ArrowLeft, Star, FileText } from "lucide-react";
 
-export default async function BookDetailPage({ params }: { params: { id: string } }) {
-  const book = await db.query.books.findFirst({
-    where: eq(books.id, params.id),
-  });
+export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const result = await db.select().from(books).where(eq(books.id, id));
+  const book = result[0];
 
   if (!book) {
     notFound();
   }
 
   // Fetch related concepts
-  const relatedConceptsLinks = await db.select().from(bookConcepts).where(eq(bookConcepts.bookId, book.id));
-  const relatedConcepts = await Promise.all(relatedConceptsLinks.map(async (link) => {
-    return await db.query.concepts.findFirst({ where: (concepts, { eq }) => eq(concepts.id, link.conceptId) });
-  }));
+  const conceptLinks = await db.select().from(bookConcepts).where(eq(bookConcepts.bookId, book.id));
+  const relatedConcepts = await Promise.all(
+    conceptLinks.map(async (link) => {
+      const r = await db.select().from(concepts).where(eq(concepts.id, link.conceptId));
+      return r[0] || null;
+    })
+  );
 
-  // Fetch related projects (if any)
-  const relatedProjectsLinks = await db.select().from(bookProjects).where(eq(bookProjects.bookId, book.id));
-  const relatedProjects = await Promise.all(relatedProjectsLinks.map(async (link) => {
-    return await db.query.projects.findFirst({ where: (projects, { eq }) => eq(projects.id, link.projectId) });
-  }));
+  // Fetch related projects
+  const projectLinks = await db.select().from(bookProjects).where(eq(bookProjects.bookId, book.id));
+  const relatedProjects = await Promise.all(
+    projectLinks.map(async (link) => {
+      const r = await db.select().from(projects).where(eq(projects.id, link.projectId));
+      return r[0] || null;
+    })
+  );
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -63,6 +69,28 @@ export default async function BookDetailPage({ params }: { params: { id: string 
         </div>
         <h1 className="text-4xl font-bold tracking-tight">{book.title}</h1>
         <p className="text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
+        
+        {book.fileUrl && (
+          <div className="pt-2">
+            {book.fileUrl.includes('.epub') ? (
+              <Link 
+                href={`/read/${book.id}`}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Read Book
+              </Link>
+            ) : (
+              <Link 
+                href={`/read/${book.id}`}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                Download / Read PDF
+              </Link>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="prose dark:prose-invert max-w-none">

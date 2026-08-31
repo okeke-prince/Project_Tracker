@@ -10,6 +10,7 @@ export default async function ManagePage() {
     orderBy: [desc(books.updatedAt)],
     with: {
       bookConcepts: true,
+      bookProjects: true,
     }
   });
   
@@ -38,7 +39,7 @@ export default async function ManagePage() {
           <TabsTrigger value="projects">Projects</TabsTrigger>
         </TabsList>
         <TabsContent value="books" className="mt-6">
-          <BooksSection books={allBooks} concepts={allConcepts} />
+          <BooksSection books={allBooks} concepts={allConcepts} projects={allProjects} />
         </TabsContent>
         <TabsContent value="projects" className="mt-6">
           <ProjectsSection projects={allProjects} concepts={allConcepts} books={allBooks} />
