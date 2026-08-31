@@ -9,6 +9,7 @@ export const bookSchema = z.object({
   progress: z.coerce.number().min(0).max(100).optional().or(z.literal("")),
   rating: z.coerce.number().min(1).max(5).optional().or(z.literal("")),
   coverUrl: z.string().url().optional().or(z.literal("")),
+  fileUrl: z.string().optional().or(z.literal("")),
   tags: z.string().optional(),
   notes: z.string().optional(),
   conceptIds: z.array(z.string()).optional(),

@@ -11,6 +11,15 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Knowledge Tracker",
   description: "Track your software architecture learning journey.",
+  appleWebApp: {
+    title: "ArchitectKT",
+    statusBarStyle: "black-translucent",
+    capable: true,
+  },
+};
+
+export const viewport = {
+  themeColor: "#09090b",
 };
 
 export default async function RootLayout({

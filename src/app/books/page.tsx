@@ -27,8 +27,11 @@ export default async function BooksPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {allBooks.map((book) => (
-          <Link key={book.id} href={`/books/${book.id}`}>
+        {allBooks.map((book) => {
+          const hasFile = !!book.fileUrl;
+          const href = hasFile ? `/read/${book.id}` : `/books/${book.id}`;
+          return (
+          <Link key={book.id} href={href}>
             <Card className="h-full hover:border-primary/50 transition-colors flex flex-col cursor-pointer">
               <CardHeader className="flex-1">
                 <div className="flex items-center justify-between mb-2">
@@ -49,7 +52,8 @@ export default async function BooksPage() {
               </CardContent>
             </Card>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
