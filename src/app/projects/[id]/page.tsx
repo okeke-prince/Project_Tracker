@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Compass, Book, ArrowLeft, Github } from "lucide-react";
 
-export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const project = await db.query.projects.findFirst({
-    where: eq(projects.id, params.id),
+    where: eq(projects.id, id),
   });
 
   if (!project) {

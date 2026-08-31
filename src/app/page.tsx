@@ -82,6 +82,7 @@ export default async function Dashboard() {
                 subtitle={book.authors}
                 status={book.status}
                 icon={BookOpen}
+                fileUrl={book.fileUrl}
               />
             ))}
             {inProgress.concepts.map(concept => (
@@ -249,9 +250,13 @@ function MetricCard({ title, value, icon: Icon, href }: { title: string, value: 
   );
 }
 
-function InProgressCard({ type, id, title, subtitle, status, icon: Icon }: any) {
+function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl }: any) {
+  const isEpub = type === 'book' && typeof fileUrl === 'string' && fileUrl.includes('.epub');
+  const hasFile = type === 'book' && !!fileUrl;
+  const href = hasFile ? `/read/${id}` : `/${type}s/${id}`;
+  
   return (
-    <Link href={`/${type}s/${id}`} className="block group">
+    <Link href={href} className="block group">
       <Card className="shadow-sm hover:shadow-md transition-all hover:border-primary/40 relative overflow-hidden">
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${getStatusColor(status).split(' ')[0].replace('bg-', 'bg-').replace('/10', '')}`} />
         <CardContent className="p-5 flex items-center justify-between gap-4">

@@ -15,6 +15,8 @@ export const books = sqliteTable('books', {
   progress: integer('progress').default(0), // 0 to 100 percentage
   rating: integer('rating'),
   coverUrl: text('cover_url'),
+  fileUrl: text('file_url'),
+  lastLocation: text('last_location'),
   notes: text('notes'),
   tags: text('tags'),
   ...timestamps,

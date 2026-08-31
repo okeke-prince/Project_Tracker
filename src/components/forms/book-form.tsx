@@ -14,15 +14,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 type BookFormProps = {
   book?: any;
   concepts: any[];
+  projects: any[];
   onSuccess?: () => void;
 };
 
-export function BookForm({ book, concepts, onSuccess }: BookFormProps) {
+export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps) {
   const [state, formAction] = useActionState(saveBook, null);
   const formRef = useRef<HTMLFormElement>(null);
   
-  // Extract initial linked concepts if editing
+  // Extract initial linked concepts/projects if editing
   const initialConceptIds = book?.bookConcepts?.map((bc: any) => bc.conceptId) || [];
+  const initialProjectIds = book?.bookProjects?.map((bp: any) => bp.projectId) || [];
 
   useEffect(() => {
     if (state?.success) {
@@ -57,6 +59,16 @@ export function BookForm({ book, concepts, onSuccess }: BookFormProps) {
           <Label htmlFor="progress">Progress (%)</Label>
           <Input id="progress" name="progress" type="number" min="0" max="100" defaultValue={book?.progress || 0} />
         </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="bookFile">Book File (PDF or EPUB)</Label>
+        <Input id="bookFile" name="bookFile" type="file" accept=".pdf,.epub" />
+        {book?.fileUrl && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Current file attached. Uploading a new one will replace it.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -95,7 +107,9 @@ export function BookForm({ book, concepts, onSuccess }: BookFormProps) {
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[150px]">
             <div className="space-y-2 p-2">
-              {concepts.map((concept) => (
+              {concepts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No concepts created yet.</p>
+              ) : concepts.map((concept) => (
                 <div key={concept.id} className="flex items-center space-x-2">
                   <Checkbox 
                     id={`concept-${concept.id}`} 
@@ -113,9 +127,35 @@ export function BookForm({ book, concepts, onSuccess }: BookFormProps) {
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label>Linked Projects</Label>
+        <div className="border rounded-md p-2">
+          <ScrollArea className="h-[150px]">
+            <div className="space-y-2 p-2">
+              {projects.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No projects created yet.</p>
+              ) : projects.map((project) => (
+                <div key={project.id} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`project-${project.id}`} 
+                    name="projectIds" 
+                    value={project.id} 
+                    defaultChecked={initialProjectIds.includes(project.id)}
+                  />
+                  <label htmlFor={`project-${project.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                    {project.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
+
       <div className="pt-4 border-t flex justify-end">
         <SubmitButton>{book ? 'Update Book' : 'Add Book'}</SubmitButton>
       </div>
     </form>
   );
 }
+
