@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ReactReader } from "react-reader";
+import { ReactReader, ReactReaderStyle } from "react-reader";
 import { syncBookProgress } from "@/app/actions/reader";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -86,6 +86,7 @@ export function EpubReader({ bookId, fileUrl, title, initialLocation }: EpubRead
             openAs: 'epub'
           }}
           readerStyles={{
+            ...ReactReaderStyle,
             container: { overflow: 'hidden', height: '100%', position: 'relative' },
             readerArea: { width: '100%', height: '100%' },
             titleArea: { display: 'none' }, // We use our own header

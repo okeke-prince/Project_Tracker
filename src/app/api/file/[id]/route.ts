@@ -54,12 +54,6 @@ export async function GET(
         Key: key,
       });
       const response = await s3Client.send(command);
-      const stream = response.Body as ReadableStream;
-      const chunks: Uint8Array[] = [];
-      const reader = stream.transformToByteArray
-        ? undefined
-        : (stream as any).getReader?.();
-
       if (response.Body?.transformToByteArray) {
         const bytes = await response.Body.transformToByteArray();
         fileBuffer = Buffer.from(bytes);
@@ -94,7 +88,7 @@ export async function GET(
       fileBuffer = await fs.readFile(localPath);
     }
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `inline; filename="${book.title}.${isPdf ? "pdf" : "epub"}"`,

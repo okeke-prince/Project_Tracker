@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ProjectForm } from "@/components/forms/project-form";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2 } from "lucide-react";
@@ -36,8 +36,8 @@ export function ProjectsSection({ projects, concepts, books }: { projects: any[]
     <div className="space-y-4">
       <div className="flex justify-end">
         <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <SheetTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Add Project</Button>
+          <SheetTrigger className={buttonVariants({ variant: "default" })}>
+            <Plus className="mr-2 h-4 w-4" /> Add Project
           </SheetTrigger>
           <SheetContent className="sm:max-w-[640px] overflow-y-auto">
             <SheetHeader className="mb-6">
@@ -72,8 +72,8 @@ export function ProjectsSection({ projects, concepts, books }: { projects: any[]
                 
                 <div className="flex items-center gap-2">
                   <Sheet open={editingProject?.id === project.id} onOpenChange={(open) => setEditingProject(open ? project : null)}>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="sm"><Edit2 className="mr-2 h-3 w-3" /> Edit</Button>
+                    <SheetTrigger className={buttonVariants({ variant: "outline", size: "sm" })}>
+                      <Edit2 className="mr-2 h-3 w-3" /> Edit
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-[640px] overflow-y-auto">
                       <SheetHeader className="mb-6">
