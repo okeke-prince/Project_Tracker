@@ -50,9 +50,15 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Cookies">
+        <p>We only use cookies the site needs to work, so there&apos;s nothing to opt in or out of:</p>
+        <ul>
+          <li><strong>Session:</strong> keeps you signed in. It lasts up to 30 days and renews while you use the site.</li>
+          <li><strong>Security:</strong> protects the sign-in form against forged requests.</li>
+          <li><strong>Sign-in redirect:</strong> remembers which page to return you to after signing in.</li>
+        </ul>
         <p>
-          We use one essential cookie to keep you signed in. It lasts up to 30 days and renews while you use the site.
-          Your light or dark theme choice is saved in your browser. We don&apos;t use advertising or tracking cookies.
+          Your light or dark theme choice is saved in your browser&apos;s storage, not in a cookie. We don&apos;t use
+          analytics, advertising or tracking cookies.
         </p>
       </Section>
 
