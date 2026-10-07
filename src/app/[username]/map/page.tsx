@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowLeft, Compass } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { getKnowledgeGraph, getUserByUsername } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/session";
 import { KnowledgeGraph } from "@/components/knowledge-graph";
@@ -47,13 +48,13 @@ export default async function ProfileMapPage({ params }: Props) {
         {graph.nodes.length > 0 ? (
           <KnowledgeGraph nodes={graph.nodes} links={graph.links} />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-            <Compass className="h-8 w-8 text-muted-foreground" />
-            <p className="max-w-sm text-muted-foreground">
-              {isOwner ? "Your map is empty. Add concepts and link them to books and projects." : `${name} hasn't mapped any concepts yet.`}
-            </p>
-            {isOwner && <Link href="/manage?tab=concepts" className={buttonVariants({ variant: "outline" })}>Add a concept</Link>}
-          </div>
+          <EmptyState
+            art="concepts"
+            title="No concepts yet"
+            description={isOwner ? "Add concepts and link them to books and projects to build your map." : `${name} hasn't mapped any concepts yet.`}
+            action={isOwner && <Link href="/manage?tab=concepts" className={buttonVariants()}>Add a concept</Link>}
+            className="h-full justify-center"
+          />
         )}
       </div>
     </div>

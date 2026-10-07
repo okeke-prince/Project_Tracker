@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteConcept } from "@/app/actions/mutations";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 
 export function ConceptsSection({ concepts }: { concepts: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -48,9 +49,12 @@ export function ConceptsSection({ concepts }: { concepts: any[] }) {
       </div>
 
       {concepts.length === 0 ? (
-        <div className="text-center p-12 border rounded-xl border-dashed">
-          <p className="text-muted-foreground">No concepts found. Add your first concept!</p>
-        </div>
+        <EmptyState
+          art="concepts"
+          title="No concepts yet"
+          description="Add the patterns and ideas you're learning, then link them to books and projects."
+          action={<Button onClick={() => setIsAddOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add a concept</Button>}
+        />
       ) : (
         <div className="grid gap-4">
           {concepts.map((concept) => (

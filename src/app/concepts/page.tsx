@@ -3,7 +3,8 @@ import { concepts } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Compass } from "lucide-react";
+import { Compass, Plus } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { eq } from "drizzle-orm";
 import { requireUserId } from "@/lib/session";
 import { getKnowledgeGraph } from "@/db/queries";
@@ -33,19 +34,22 @@ export default async function ConceptsPage() {
         </div>
       </div>
 
-      <div className="surface relative h-[60vh] min-h-[380px] sm:h-[70vh] sm:min-h-[480px] overflow-hidden rounded-2xl border bg-card dark:bg-card/40">
-        {graph.nodes.length > 0 ? (
+      {allConcepts.length === 0 ? (
+        <EmptyState
+          art="concepts"
+          title="No concepts yet"
+          description="Add the patterns and ideas you're learning, then link them to the books that taught you and the projects where you used them."
+          action={
+            <Link href="/manage?tab=concepts" className={buttonVariants()}>
+              <Plus className="mr-2 h-4 w-4" /> Add a concept
+            </Link>
+          }
+        />
+      ) : (
+        <div className="surface relative h-[60vh] min-h-[380px] sm:h-[70vh] sm:min-h-[480px] overflow-hidden rounded-2xl border bg-card dark:bg-card/40">
           <KnowledgeGraph nodes={graph.nodes} links={graph.links} />
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-            <Compass className="h-8 w-8 text-muted-foreground" />
-            <p className="max-w-sm text-muted-foreground">
-              Your map is empty. Add concepts, then link them to the books that taught you and the projects where you used them.
-            </p>
-            <Link href="/manage?tab=concepts" className={buttonVariants({ variant: "outline" })}>Add a concept</Link>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {allConcepts.map((concept) => (

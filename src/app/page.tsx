@@ -7,6 +7,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
+import { buttonVariants } from "@/components/ui/button";
 
 import { auth } from "@/auth";
 
@@ -128,10 +130,13 @@ export default async function Dashboard() {
             ))}
             
             {inProgress.books.length === 0 && inProgress.concepts.length === 0 && inProgress.projects.length === 0 && (
-              <div className="p-8 text-center border rounded-xl border-dashed">
-                <p className="text-muted-foreground">You have no items currently in progress.</p>
-                <Link href="/concepts" className="text-primary hover:underline mt-2 inline-block">Explore Concepts Map</Link>
-              </div>
+              <EmptyState
+                compact
+                art="cabinet"
+                title="Nothing in progress"
+                description="Books you're reading, concepts you're studying and projects you're building show up here."
+                action={<Link href="/manage" className={buttonVariants({ variant: "outline", size: "sm" })}>Add something</Link>}
+              />
             )}
           </div>
         </div>

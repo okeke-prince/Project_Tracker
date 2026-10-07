@@ -169,3 +169,15 @@
     letter-spacing: -0.01em;
   }
 }
+
+/* Gentle bob for empty-state illustrations. */
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-empty-float {
+  animation: empty-float 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-empty-float { animation: none; }
+}

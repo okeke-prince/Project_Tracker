@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteProject } from "@/app/actions/mutations";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 
 export function ProjectsSection({ projects, concepts, books }: { projects: any[], concepts: any[], books: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -49,9 +50,12 @@ export function ProjectsSection({ projects, concepts, books }: { projects: any[]
       </div>
 
       {projects.length === 0 ? (
-        <div className="text-center p-12 border rounded-xl border-dashed">
-          <p className="text-muted-foreground">No projects found. Add your first project!</p>
-        </div>
+        <EmptyState
+          art="projects"
+          title="No projects yet"
+          description="Add what you've built or are building, and link the concepts you used."
+          action={<Button onClick={() => setIsAddOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add a project</Button>}
+        />
       ) : (
         <div className="grid gap-4">
           {projects.map((project) => (

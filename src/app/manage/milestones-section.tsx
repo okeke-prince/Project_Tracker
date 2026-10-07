@@ -10,6 +10,7 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteMilestone } from "@/app/actions/mutations";
 import { formatEventDate } from "@/lib/dates";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 
 export function MilestonesSection({ milestones }: { milestones: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -42,9 +43,12 @@ export function MilestonesSection({ milestones }: { milestones: any[] }) {
       </div>
 
       {milestones.length === 0 ? (
-        <div className="text-center p-12 border rounded-xl border-dashed">
-          <p className="text-muted-foreground">No milestones yet. Add when you graduated or got certified!</p>
-        </div>
+        <EmptyState
+          art="milestones"
+          title="No milestones yet"
+          description="Add moments like graduating, getting certified or starting a new role."
+          action={<Button onClick={() => setIsAddOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add a milestone</Button>}
+        />
       ) : (
         <div className="grid gap-4">
           {milestones.map((milestone) => (

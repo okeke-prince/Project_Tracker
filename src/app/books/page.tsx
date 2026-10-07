@@ -3,7 +3,9 @@ import { books } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Book as BookIcon } from "lucide-react";
+import { Book as BookIcon, Plus } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { buttonVariants } from "@/components/ui/button";
 
 import { eq } from "drizzle-orm";
 import { requireUserId } from "@/lib/session";
@@ -29,6 +31,19 @@ export default async function BooksPage() {
           <p className="text-muted-foreground mt-2">Your reading list and references.</p>
         </div>
       </div>
+
+      {allBooks.length === 0 && (
+        <EmptyState
+          art="books"
+          title="No books yet"
+          description="Add the books you're reading or have finished. Your files and notes stay private."
+          action={
+            <Link href="/manage?tab=books" className={buttonVariants()}>
+              <Plus className="mr-2 h-4 w-4" /> Add a book
+            </Link>
+          }
+        />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {allBooks.map((book) => {

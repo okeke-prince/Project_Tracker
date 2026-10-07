@@ -3,7 +3,9 @@ import { projects } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Folder } from "lucide-react";
+import { Folder, Plus } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { buttonVariants } from "@/components/ui/button";
 import { eq } from "drizzle-orm";
 import { requireUserId } from "@/lib/session";
 
@@ -28,6 +30,19 @@ export default async function ProjectsPage() {
           <p className="text-muted-foreground mt-2">Applying concepts into practice.</p>
         </div>
       </div>
+
+      {allProjects.length === 0 && (
+        <EmptyState
+          art="projects"
+          title="No projects yet"
+          description="Add what you've built or are building, and link the concepts you used."
+          action={
+            <Link href="/manage?tab=projects" className={buttonVariants()}>
+              <Plus className="mr-2 h-4 w-4" /> Add a project
+            </Link>
+          }
+        />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {allProjects.map((project) => (

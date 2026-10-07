@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteBook } from "@/app/actions/mutations";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 
 export function BooksSection({ books, concepts, projects }: { books: any[], concepts: any[], projects: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -49,9 +50,12 @@ export function BooksSection({ books, concepts, projects }: { books: any[], conc
       </div>
 
       {books.length === 0 ? (
-        <div className="text-center p-12 border rounded-xl border-dashed">
-          <p className="text-muted-foreground">No books found. Add your first book!</p>
-        </div>
+        <EmptyState
+          art="books"
+          title="No books yet"
+          description="Add the books you're reading or have finished. Your files and notes stay private."
+          action={<Button onClick={() => setIsAddOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add a book</Button>}
+        />
       ) : (
         <div className="grid gap-4">
           {books.map((book) => (
