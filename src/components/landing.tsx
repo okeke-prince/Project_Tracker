@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 import { Lift, Reveal, Stagger, StaggerItem } from "@/components/motion";
-import { ArrowRight, BadgeCheck, BookOpen, Compass, GraduationCap, Lock, Rocket, Share2, UserPlus } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpen, Compass, GraduationCap, Rocket, Share2, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ClaimUsername } from "@/components/claim-username";
 
@@ -199,16 +199,6 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
           </Stagger>
         </section>
       )}
-
-      <Reveal>
-        <div className="flex items-start gap-4 rounded-xl border bg-muted/50 p-5">
-          <Lock className="mt-0.5 h-4 w-4 shrink-0" />
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            <span className="font-medium text-foreground">Your files stay yours.</span>{" "}
-            People can see which books you&apos;ve read, but your book files, reading progress and notes are never public.
-          </p>
-        </div>
-      </Reveal>
 
       <Reveal>
         <section className="text-center space-y-5 py-6">
