@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import Link from "next/link";
 import { Compass, Loader2 } from "lucide-react";
 import { useFormStatus } from "react-dom";
+import { OAuthButtons } from "@/components/oauth-buttons";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -55,7 +56,8 @@ function RegisterForm() {
             Create your profile and start building your timeline
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <OAuthButtons divider="Or sign up with email" />
           <form ref={formRef} action={formAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
