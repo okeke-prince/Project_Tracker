@@ -103,8 +103,8 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
     [colors.text],
   );
 
-  // Frame the whole map. The physics settles again whenever a node is clicked or dragged,
-  // so the automatic fit only happens the first time; after that it's empty-space clicks.
+  // Frame the whole map once, when it first settles. After that, zooming out is up to
+  // empty-space clicks so a focused node stays in view.
   const fitted = useRef(false);
   const zoomOut = () => fgRef.current?.zoomToFit(800, 60);
   const clearSelection = () => {
@@ -134,6 +134,10 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
           backgroundColor="rgba(0,0,0,0)"
           showNavInfo={false}
           controlType="orbit"
+          // Node dragging is off: the library's drag handler can finish a drag it never started
+          // and crash reading the node's saved position, and a click counted as a drag
+          // shook the whole map loose.
+          enableNodeDrag={false}
           enablePointerInteraction={!compact}
           nodeRelSize={4}
           nodeResolution={16}
