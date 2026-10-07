@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/db";
-import { books, projects, bookConcepts, conceptProjects, bookProjects } from "@/db/schema";
+import { books, projects, concepts, bookConcepts, conceptProjects, bookProjects } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { bookSchema, projectSchema } from "./schema";
@@ -122,6 +122,26 @@ export async function saveProject(prevState: any, formData: FormData) {
     const isUpdate = !!validatedData.id;
     let projectId = validatedData.id;
 
+    let gitCreatedAt = null;
+    if (!isUpdate && validatedData.repoUrl?.includes("github.com/")) {
+      try {
+        const urlParts = new URL(validatedData.repoUrl).pathname.split('/').filter(Boolean);
+        if (urlParts.length >= 2) {
+          const owner = urlParts[0];
+          let repo = urlParts[1];
+          if (repo.endsWith('.git')) repo = repo.slice(0, -4);
+          
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+          if (res.ok) {
+            const data = await res.json();
+            gitCreatedAt = data.created_at;
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch github repo info", err);
+      }
+    }
+
     const projectValues = {
       name: validatedData.name,
       description: validatedData.description,
@@ -130,7 +150,8 @@ export async function saveProject(prevState: any, formData: FormData) {
       techStack: validatedData.techStack ? JSON.stringify(validatedData.techStack.split(',').map(t => t.trim()).filter(Boolean)) : null,
       lessonsLearned: validatedData.lessonsLearned,
       tags: validatedData.tags ? JSON.stringify(validatedData.tags.split(',').map(t => t.trim()).filter(Boolean)) : null,
-      updatedAt: new Date().toISOString(),
+      updatedAt: gitCreatedAt || new Date().toISOString(),
+      ...(gitCreatedAt && !isUpdate ? { createdAt: gitCreatedAt } : {}),
     };
 
     if (isUpdate) {
@@ -181,5 +202,60 @@ export async function deleteProject(id: string) {
     return { success: true };
   } catch (error) {
     return { success: false, error: "Failed to delete project." };
+  }
+}
+
+export async function saveConcept(prevState: any, formData: FormData) {
+  try {
+    const data = Object.fromEntries(formData.entries());
+    
+    // Auto-generate slug from name if not provided
+    if (!data.slug && data.name) {
+      data.slug = (data.name as string).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    }
+
+    const validatedData = (await import("./schema")).conceptSchema.parse(data);
+
+    const isUpdate = !!validatedData.id;
+    let conceptId = validatedData.id;
+
+    const conceptValues = {
+      name: validatedData.name,
+      slug: validatedData.slug,
+      shortDescription: validatedData.shortDescription || null,
+      status: validatedData.status,
+      tags: validatedData.tags ? JSON.stringify(validatedData.tags.split(',').map(t => t.trim()).filter(Boolean)) : null,
+      notes: validatedData.notes,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (isUpdate) {
+      await db.update(concepts).set(conceptValues).where(eq(concepts.id, conceptId!));
+    } else {
+      const result = await db.insert(concepts).values(conceptValues).returning({ id: concepts.id });
+      conceptId = result[0].id;
+    }
+
+    revalidatePath("/");
+    revalidatePath("/concepts");
+    revalidatePath("/manage");
+    if (isUpdate) revalidatePath(`/concepts/${conceptId}`);
+
+    return { success: true, message: isUpdate ? "Concept updated successfully." : "Concept added successfully." };
+  } catch (error: any) {
+    console.error("Save Concept Error:", error);
+    return { success: false, error: error.message || "Failed to save concept." };
+  }
+}
+
+export async function deleteConcept(id: string) {
+  try {
+    await db.delete(concepts).where(eq(concepts.id, id));
+    revalidatePath("/");
+    revalidatePath("/concepts");
+    revalidatePath("/manage");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to delete concept." };
   }
 }

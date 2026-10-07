@@ -5,7 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { Book as BookIcon } from "lucide-react";
 
+import { auth } from "@/auth";
+
 export default async function BooksPage() {
+  const session = await auth();
   const allBooks = await db.select().from(books);
 
   const getStatusColor = (status: string) => {
@@ -29,7 +32,7 @@ export default async function BooksPage() {
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {allBooks.map((book) => {
           const hasFile = !!book.fileUrl;
-          const href = hasFile ? `/read/${book.id}` : `/books/${book.id}`;
+          const href = hasFile && session ? `/read/${book.id}` : `/books/${book.id}`;
           return (
           <Link key={book.id} href={href}>
             <Card className="h-full hover:border-primary/50 transition-colors flex flex-col cursor-pointer">
@@ -44,6 +47,14 @@ export default async function BooksPage() {
                 <CardDescription>{book.authors}</CardDescription>
               </CardHeader>
               <CardContent>
+                {book.progress !== null && book.progress > 0 && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary" style={{ width: `${book.progress}%` }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground font-medium">{book.progress}%</span>
+                  </div>
+                )}
                 <div className="flex gap-2 flex-wrap mt-2">
                   {book.tags && JSON.parse(book.tags).map((tag: string) => (
                     <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>

@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Compass, Book, ArrowLeft, Github } from "lucide-react";
+import { Compass, Book, ArrowLeft, GitFork } from "lucide-react";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -56,7 +56,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </div>
           {project.repoUrl && (
             <a href={project.repoUrl} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground">
-              <Github className="h-5 w-5" />
+              <GitFork className="h-5 w-5" />
             </a>
           )}
         </div>

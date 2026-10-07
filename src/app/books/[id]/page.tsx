@@ -5,8 +5,10 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Compass, Folder, ArrowLeft, Star, FileText } from "lucide-react";
+import { auth } from "@/auth";
 
 export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
   const { id } = await params;
   const result = await db.select().from(books).where(eq(books.id, id));
   const book = result[0];
@@ -70,7 +72,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         <h1 className="text-4xl font-bold tracking-tight">{book.title}</h1>
         <p className="text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
         
-        {book.fileUrl && (
+        {session && book.fileUrl && (
           <div className="pt-2">
             {book.fileUrl.includes('.epub') ? (
               <Link 

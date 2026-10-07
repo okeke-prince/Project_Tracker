@@ -5,7 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
+import { auth } from "@/auth";
+
 export default async function Dashboard() {
+  const session = await auth();
   const metrics = await getDashboardMetrics();
   const inProgress = await getInProgressItems();
   const recentActivity = await getRecentActivity();
@@ -18,13 +21,16 @@ export default async function Dashboard() {
 
   const today = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+
   return (
     <div className="space-y-10 animate-in fade-in duration-700">
       
       {/* Top section - Hero & Metrics */}
       <section className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Good evening, Architect.</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{greeting}, Udo.</h1>
           <p className="text-muted-foreground mt-1">{today}</p>
         </div>
 
@@ -83,6 +89,8 @@ export default async function Dashboard() {
                 status={book.status}
                 icon={BookOpen}
                 fileUrl={book.fileUrl}
+                progress={book.progress}
+                session={session}
               />
             ))}
             {inProgress.concepts.map(concept => (
@@ -136,8 +144,8 @@ export default async function Dashboard() {
                     <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border bg-card shadow-sm transition-all hover:shadow-md">
                       <div className="flex items-center justify-between space-x-2 mb-1">
                         <span className="font-bold text-sm text-muted-foreground capitalize">{activity.type}</span>
-                        <time className="text-xs font-medium text-muted-foreground">
-                          {new Date(activity.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        <time className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                          {new Date(activity.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </time>
                       </div>
                       <Link href={`/${activity.type}s/${activity.id}`} className="font-semibold text-sm hover:text-primary transition-colors line-clamp-2">
@@ -250,10 +258,10 @@ function MetricCard({ title, value, icon: Icon, href }: { title: string, value: 
   );
 }
 
-function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl }: any) {
+function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl, progress, session }: any) {
   const isEpub = type === 'book' && typeof fileUrl === 'string' && fileUrl.includes('.epub');
   const hasFile = type === 'book' && !!fileUrl;
-  const href = hasFile ? `/read/${id}` : `/${type}s/${id}`;
+  const href = hasFile && session ? `/read/${id}` : `/${type}s/${id}`;
   
   return (
     <Link href={href} className="block group">
@@ -270,6 +278,14 @@ function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl
             </div>
           </div>
           <div className="flex items-center gap-4 shrink-0">
+            {progress !== undefined && progress > 0 && (
+              <div className="hidden sm:flex items-center gap-2 mr-2">
+                <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
+                </div>
+                <span className="text-xs text-muted-foreground">{progress}%</span>
+              </div>
+            )}
             <Badge variant="outline" className={`hidden sm:inline-flex capitalize ${getStatusColor(status)}`}>
               {status.replace('-', ' ')}
             </Badge>

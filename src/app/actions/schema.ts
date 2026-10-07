@@ -27,3 +27,13 @@ export const projectSchema = z.object({
   conceptIds: z.array(z.string()).optional(),
   bookIds: z.array(z.string()).optional(),
 });
+
+export const conceptSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
+  shortDescription: z.string().optional(),
+  status: z.enum(["studied", "applied", "mastered"]),
+  notes: z.string().optional(),
+  tags: z.string().optional(),
+});

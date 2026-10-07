@@ -16,6 +16,7 @@ interface EpubReaderProps {
 
 export function EpubReader({ bookId, fileUrl, title, initialLocation }: EpubReaderProps) {
   const [location, setLocation] = useState<string | number>(initialLocation || 0);
+  const [currentPercentage, setCurrentPercentage] = useState<number>(0);
   const renditionRef = useRef<any>(null);
   
   // Use a timeout to debounce database syncs so we don't spam the server on rapid page turns
@@ -31,6 +32,7 @@ export function EpubReader({ bookId, fileUrl, title, initialLocation }: EpubRead
       // Calculate percentage if available
       if (locationData && locationData.start && locationData.start.percentage !== undefined) {
         const percentage = Math.round(locationData.start.percentage * 100);
+        setCurrentPercentage(percentage);
         
         // Debounce the sync
         if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
@@ -52,6 +54,13 @@ export function EpubReader({ bookId, fileUrl, title, initialLocation }: EpubRead
             </Button>
           </Link>
           <h1 className="text-sm font-semibold truncate max-w-[200px] sm:max-w-[400px]">{title}</h1>
+        </div>
+
+        {/* Progress Indicator */}
+        <div className="flex items-center">
+          <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-1 rounded-md">
+            {currentPercentage}% Completed
+          </span>
         </div>
       </div>
 

@@ -39,7 +39,7 @@ export async function getRecentActivity() {
   const combined = [
     ...recentBooks.map(b => ({ type: 'book' as const, id: b.id, title: b.title, date: b.updatedAt, status: b.status })),
     ...recentConcepts.map(c => ({ type: 'concept' as const, id: c.id, title: c.name, date: c.updatedAt, status: c.status })),
-    ...recentProjects.map(p => ({ type: 'project' as const, id: p.id, title: p.name, date: p.updatedAt, status: p.status })),
+    ...recentProjects.map(p => ({ type: 'project' as const, id: p.id, title: p.name, date: p.createdAt, status: p.status })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
 
   return combined;
