@@ -47,7 +47,7 @@ export function UserMenu({ session, username }: { session: Session | null; usern
         </div>
         <DropdownMenuSeparator />
         {username && (
-          <DropdownMenuItem render={<a href={`/u/${username}`} className="cursor-pointer" />}>
+          <DropdownMenuItem render={<a href={`/${username}`} className="cursor-pointer" />}>
             <UserRound className="mr-2 h-4 w-4" />
             <span>Your public profile</span>
           </DropdownMenuItem>

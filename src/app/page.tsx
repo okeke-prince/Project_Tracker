@@ -141,7 +141,7 @@ export default async function Dashboard() {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold tracking-tight">Your Timeline</h2>
             {username && (
-              <Link href={`/u/${username}`} className="text-sm text-primary flex items-center hover:underline">
+              <Link href={`/${username}`} className="text-sm text-primary flex items-center hover:underline">
                 Public profile <ArrowRight className="ml-1 w-3 h-3" />
               </Link>
             )}

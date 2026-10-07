@@ -50,7 +50,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Link href={isOwner ? "/books" : `/u/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
+      <Link href={isOwner ? "/books" : `/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
         <ArrowLeft className="mr-2 h-4 w-4" />
         {isOwner ? "Back to Books" : `Back to ${owner?.name || owner?.username}'s profile`}
       </Link>
@@ -77,7 +77,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         <p className="text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
         {!isOwner && owner?.username && (
           <p className="text-sm text-muted-foreground">
-            On <Link href={`/u/${owner.username}`} className="text-primary hover:underline">{owner.name || owner.username}</Link>&apos;s shelf
+            On <Link href={`/${owner.username}`} className="text-primary hover:underline">{owner.name || owner.username}</Link>&apos;s shelf
             {book.finishedAt && <> · finished {book.finishedAt}</>}
           </p>
         )}

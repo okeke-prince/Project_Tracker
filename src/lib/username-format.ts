@@ -1,7 +1,12 @@
 export const USERNAME_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])$/;
 
-// Paths under /u/ are free, but keep obviously confusing names out.
-export const RESERVED = new Set(["admin", "api", "login", "logout", "register", "manage", "settings", "u"]);
+// Profiles live at the site root (/<username>), so names that clash with app routes,
+// or that would look official, are off limits.
+export const RESERVED = new Set([
+  "admin", "api", "app", "about", "auth", "books", "concepts", "dashboard", "help", "home",
+  "login", "logout", "manage", "me", "privacy", "profile", "projects", "read", "register",
+  "settings", "signin", "signup", "support", "terms", "u", "uploads",
+]);
 
 export function normalizeUsername(raw: string): string {
   return raw.toLowerCase().trim().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);

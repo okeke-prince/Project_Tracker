@@ -38,7 +38,7 @@ const preview = [
 
 // The last words get the italic serif accent.
 const steps = [
-  { icon: UserPlus, title: "Claim your link", text: "Pick a username and get your own page at /u/yourname." },
+  { icon: UserPlus, title: "Claim your link", text: "Pick a username and get your own page at yoursite.com/yourname." },
   { icon: GraduationCap, title: "Add your journey", text: "Log milestones, books, concepts and projects, and link them together." },
   { icon: Share2, title: "Share it", text: "Put the link in your CV, LinkedIn or GitHub so people see everything you've covered." },
 ];
@@ -174,7 +174,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
             {featured.map((p) => (
               <StaggerItem key={p.username}>
                 <Lift className="h-full">
-                  <Link href={`/u/${p.username}`} className="surface group flex h-full flex-col rounded-xl border bg-card p-5 transition-colors hover:border-foreground/20 dark:bg-card/50">
+                  <Link href={`/${p.username}`} className="surface group flex h-full flex-col rounded-xl border bg-card p-5 transition-colors hover:border-foreground/20 dark:bg-card/50">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={p.image || ""} alt={p.name || p.username} />

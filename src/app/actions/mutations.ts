@@ -33,7 +33,7 @@ async function ownedBookIds(userId: string, ids: string[]) {
 
 async function revalidateProfile(userId: string) {
   const username = await getUsername(userId);
-  if (username) revalidatePath(`/u/${username}`);
+  if (username) revalidatePath(`/${username}`);
 }
 
 export async function saveBook(prevState: any, formData: FormData) {
@@ -405,8 +405,8 @@ export async function saveProfile(prevState: any, formData: FormData) {
       bio: validatedData.bio || null,
     }).where(eq(users.id, userId));
 
-    if (previousUsername) revalidatePath(`/u/${previousUsername}`);
-    revalidatePath(`/u/${username}`);
+    if (previousUsername) revalidatePath(`/${previousUsername}`);
+    revalidatePath(`/${username}`);
     revalidatePath("/manage");
     revalidatePath("/", "layout");
 

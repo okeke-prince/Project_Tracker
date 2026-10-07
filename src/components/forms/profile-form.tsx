@@ -33,7 +33,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       <div className="space-y-2">
         <Label htmlFor="username">Username *</Label>
         <Input id="username" name="username" defaultValue={profile.username ?? ""} required minLength={3} maxLength={30} pattern="[a-zA-Z0-9-]+" />
-        <p className="text-xs text-muted-foreground">Your public profile lives at /u/{profile.username || "your-username"}. Changing this changes the link.</p>
+        <p className="text-xs text-muted-foreground">Your public profile lives at /{profile.username || "your-username"}. Changing this changes the link.</p>
       </div>
 
       <div className="space-y-2">

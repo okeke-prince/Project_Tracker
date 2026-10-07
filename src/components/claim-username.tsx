@@ -39,7 +39,7 @@ export function ClaimUsername({ host }: { host: string }) {
       className="w-full max-w-md space-y-2"
     >
       <div className="surface flex items-center rounded-full border bg-card p-1.5 pl-5 transition-colors focus-within:border-foreground/40 dark:bg-card/50">
-        <span className="font-mono text-sm text-muted-foreground whitespace-nowrap">{host}/u/</span>
+        <span className="font-mono text-sm text-muted-foreground whitespace-nowrap">{host}/</span>
         <input
           value={value}
           onChange={(e) => {

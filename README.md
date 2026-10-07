@@ -9,7 +9,7 @@ As a software engineer, learning isn't just about reading a book; it's about und
 - **Map Architecture Concepts:** Define patterns, system design principles, and concepts.
 - **Track Projects:** Log the practical implementations where you've applied these concepts.
 - **Connect Everything:** A many-to-many relationship system lets you see exactly which books taught you which concepts, and which projects utilize them.
-- **Share Your Timeline:** Anyone can sign up and gets a public profile at `/u/<username>` with a timeline of their milestones (graduations, certifications, jobs), finished books and shipped projects. Book files, reading progress and notes stay private to their owner.
+- **Share Your Timeline:** Anyone can sign up and gets a public profile at `/<username>` with a timeline of their milestones (graduations, certifications, jobs), finished books and shipped projects. Book files, reading progress and notes stay private to their owner.
 
 ## 🛠 Tech Stack
 

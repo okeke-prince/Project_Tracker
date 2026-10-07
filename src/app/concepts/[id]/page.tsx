@@ -44,7 +44,7 @@ export default async function ConceptDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Link href={isOwner ? "/concepts" : `/u/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
+      <Link href={isOwner ? "/concepts" : `/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
         <ArrowLeft className="mr-2 h-4 w-4" />
         {isOwner ? "Back to Concepts" : `Back to ${owner?.name || owner?.username}'s profile`}
       </Link>

@@ -81,7 +81,7 @@ function RegisterForm() {
                 pattern="[a-zA-Z0-9-]+"
                 autoComplete="username"
               />
-              <p className="text-xs text-muted-foreground">Your public profile will live at /u/your-username.</p>
+              <p className="text-xs text-muted-foreground">Your public profile will live at /your-username.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

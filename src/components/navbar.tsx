@@ -34,7 +34,7 @@ export function Navbar({ session, username }: { session: Session | null; usernam
           <nav className="flex items-center gap-1 text-sm font-medium">
             {session?.user && [
               ...navItems,
-              ...(username ? [{ href: `/u/${username}`, label: "Profile", icon: UserRound }] : []),
+              ...(username ? [{ href: `/${username}`, label: "Profile", icon: UserRound }] : []),
             ].map((item) => {
               const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               return (

@@ -150,7 +150,7 @@ export const users = sqliteTable("user", {
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
   password: text("password"),
-  username: text("username").unique(), // public profile URL: /u/<username>
+  username: text("username").unique(), // public profile URL: /<username>
   headline: text("headline"),
   bio: text("bio"),
 });
