@@ -81,10 +81,10 @@ export default async function Dashboard() {
       </section>
 
       {/* Middle section - Two columns */}
-      <section className="grid gap-8 md:grid-cols-7">
+      <section className="grid grid-cols-1 gap-8 md:grid-cols-7">
         
         {/* Left Column - Continue Learning */}
-        <div className="md:col-span-4 space-y-6">
+        <div className="min-w-0 md:col-span-4 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold tracking-tight">Continue Learning</h2>
           </div>
@@ -137,11 +137,11 @@ export default async function Dashboard() {
         </div>
 
         {/* Right Column - Timeline preview */}
-        <div className="md:col-span-3 space-y-6">
-          <div className="flex items-center justify-between">
+        <div className="min-w-0 md:col-span-3 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
             <h2 className="text-xl font-semibold tracking-tight">Your Timeline</h2>
             {username && (
-              <Link href={`/${username}`} className="text-sm text-primary flex items-center hover:underline">
+              <Link href={`/${username}`} className="shrink-0 text-sm text-primary flex items-center hover:underline">
                 Public profile <ArrowRight className="ml-1 w-3 h-3" />
               </Link>
             )}
@@ -155,7 +155,7 @@ export default async function Dashboard() {
 
       {/* Bottom section - Mastery & Quick Access */}
       <section className="space-y-6 pt-6 border-t border-border/50">
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 [&>*]:min-w-0">
           
           <div className="space-y-6">
             <h2 className="text-xl font-semibold tracking-tight">Mastery Snapshot</h2>
@@ -206,10 +206,10 @@ export default async function Dashboard() {
             </div>
             <div className="grid gap-3">
               {recentlyMastered.map(item => (
-                <Link key={`${item.type}-${item.id}`} href={`/${item.type}s/${item.id}`}>
+                <Link key={`${item.type}-${item.id}`} href={`/${item.type}s/${item.id}`} className="block min-w-0">
                   <Card className="hover:border-emerald-500/50 transition-colors shadow-sm group">
                     <CardContent className="p-4 flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
                         {item.type === 'book' ? <Book className="h-5 w-5" /> : <Compass className="h-5 w-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -254,11 +254,11 @@ function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl
   const href = hasFile && session ? `/read/${id}` : `/${type}s/${id}`;
   
   return (
-    <Link href={href} className="block group">
-      <Card className="shadow-sm hover:shadow-md transition-all hover:border-primary/40 relative overflow-hidden">
+    <Link href={href} className="block min-w-0 group">
+      <Card className="min-w-0 shadow-sm hover:shadow-md transition-all hover:border-primary/40 relative overflow-hidden">
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${getStatusColor(status).split(' ')[0].replace('bg-', 'bg-').replace('/10', '')}`} />
-        <CardContent className="p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
+        <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-muted group-hover:bg-background transition-colors shrink-0">
               <Icon className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
@@ -267,7 +267,7 @@ function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl
               <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
             </div>
           </div>
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {progress !== undefined && progress > 0 && (
               <div className="hidden sm:flex items-center gap-2 mr-2">
                 <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -280,7 +280,7 @@ function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl
               {status.replace('-', ' ')}
             </Badge>
             <div className="flex items-center text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-              Resume <ChevronRight className="ml-1 h-4 w-4" />
+              <span className="hidden sm:inline">Resume</span> <ChevronRight className="ml-1 h-4 w-4" />
             </div>
           </div>
         </CardContent>

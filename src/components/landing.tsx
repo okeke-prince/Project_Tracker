@@ -50,7 +50,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
   return (
     <div className="relative max-w-5xl mx-auto py-6 sm:py-16 space-y-16 sm:space-y-24">
 
-      <section className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">
+      <section className="grid grid-cols-1 gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center [&>*]:min-w-0">
         <div className="space-y-7">
           <Reveal>
             <span className="inline-flex items-center rounded-full border bg-background/60 px-3 py-1 font-mono text-[11px] uppercase tracking-widest text-muted-foreground backdrop-blur">
@@ -131,7 +131,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
         </div>
       </section>
 
-      <Stagger className="grid gap-4 sm:grid-cols-2">
+      <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 [&>*]:min-w-0">
         {features.map(({ icon: Icon, title, text }) => (
           <StaggerItem key={title}>
             <Lift className="h-full">
@@ -151,7 +151,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
         <Reveal>
           <SectionHeading eyebrow="How it works" title={<>Three steps to your <span className="text-accent-serif text-[1.1em]">timeline</span></>} />
         </Reveal>
-        <Stagger className="grid gap-4 sm:grid-cols-3">
+        <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-3 [&>*]:min-w-0">
           {steps.map(({ icon: Icon, title, text }, i) => (
             <StaggerItem key={title}>
               <div className="relative h-full rounded-xl border border-dashed p-6">
@@ -170,7 +170,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
           <Reveal>
             <SectionHeading eyebrow="Featured" title={<>See what people have been <span className="text-accent-serif text-[1.1em]">up to</span></>} />
           </Reveal>
-          <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>*]:min-w-0">
             {featured.map((p) => (
               <StaggerItem key={p.username}>
                 <Lift className="h-full">

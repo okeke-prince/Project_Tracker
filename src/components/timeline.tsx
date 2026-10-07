@@ -76,7 +76,7 @@ export function Timeline({ events, emptyMessage }: { events: TimelineEvent[]; em
               </motion.li>
             )}
             <motion.li
-              className="relative pl-8"
+              className="relative min-w-0 pl-8"
               initial={{ opacity: 0, x: -12 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-40px" }}
@@ -93,13 +93,13 @@ export function Timeline({ events, emptyMessage }: { events: TimelineEvent[]; em
               </motion.span>
 
               <motion.div
-                className="surface group rounded-xl border bg-card p-4 backdrop-blur-sm dark:bg-card/60 transition-colors hover:border-foreground/20 hover:bg-card"
+                className="surface group min-w-0 break-words rounded-xl border bg-card p-4 backdrop-blur-sm dark:bg-card/60 transition-colors hover:border-foreground/20 hover:bg-card"
                 whileHover={{ y: -2 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               >
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{label}</span>
-                  <time className="font-mono text-[11px] text-muted-foreground whitespace-nowrap">{formatEventDate(event.date)}</time>
+                  <span className="min-w-0 truncate text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{label}</span>
+                  <time className="shrink-0 font-mono text-[11px] text-muted-foreground whitespace-nowrap">{formatEventDate(event.date)}</time>
                 </div>
                 {event.href ? (
                   <Link href={event.href} className="font-semibold leading-snug underline-offset-4 group-hover:underline">

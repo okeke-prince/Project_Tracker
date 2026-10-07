@@ -113,7 +113,7 @@ export default async function ProfilePage({ params }: Props) {
         ))}
       </Stagger>
 
-      <section className="grid gap-4 sm:gap-6 lg:grid-cols-3 items-start">
+      <section className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 items-start [&>*]:min-w-0">
         <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-3" delay={0.05}>
           <Timeline
             events={timeline}
