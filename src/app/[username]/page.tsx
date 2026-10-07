@@ -115,11 +115,20 @@ export default async function ProfilePage({ params }: Props) {
         ))}
       </Stagger>
 
+      <Widget title="Projects" icon={Folder} count={library.projects.length} delay={0.05}>
+        <ShowMore
+          layout="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          preview={6}
+          items={library.projects.map((project) => <ProjectCard key={project.id} project={project} />)}
+          empty={isOwner ? "Add your first project in Manage so it shows up here." : "No projects yet."}
+        />
+      </Widget>
+
       {graph.nodes.length > 0 && (
         <Widget
           title="Knowledge map"
           icon={Network}
-          delay={0.05}
+          delay={0.1}
           action={
             <Link href={`/${user.username}/map`} className="group inline-flex items-center text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
               Explore in 3D <ArrowUpRight className="ml-0.5 h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
@@ -134,7 +143,7 @@ export default async function ProfilePage({ params }: Props) {
       )}
 
       <section className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 items-start [&>*]:min-w-0">
-        <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-3" delay={0.05}>
+        <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-2" delay={0.05}>
           <Timeline
             events={timeline}
             emptyMessage={isOwner ? "Add a milestone or finish a book in Manage to start your timeline." : `${name} hasn't added anything yet.`}
@@ -179,31 +188,6 @@ export default async function ProfilePage({ params }: Props) {
           )}
         </Widget>
 
-        <Widget title="Projects" icon={Folder} count={library.projects.length} delay={0.35}>
-          <ShowMore
-            items={library.projects.map((project) => (
-              <div key={project.id} className="relative rounded-lg border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
-                <div className="flex items-center justify-between gap-2">
-                  {/* Stretched link: the whole card opens the project, the repo link sits above it. */}
-                  <Link href={`/projects/${project.id}`} className="font-medium text-sm truncate after:absolute after:inset-0">{project.name}</Link>
-                  <Badge variant="outline" className={`capitalize text-[10px] shrink-0 ${statusColor[project.status] ?? defaultColor}`}>
-                    {project.status.replace(/-/g, " ")}
-                  </Badge>
-                </div>
-                {project.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{project.description}</p>}
-                {project.techStack && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {JSON.parse(project.techStack).slice(0, 4).map((tech: string) => (
-                      <Badge key={tech} variant="outline" className="text-[10px] bg-muted/50">{tech}</Badge>
-                    ))}
-                  </div>
-                )}
-                {project.repoUrl && <RepoLink url={project.repoUrl} className="mt-2" />}
-              </div>
-            ))}
-            empty="No projects yet."
-          />
-        </Widget>
       </section>
     </div>
   );
@@ -241,20 +225,50 @@ function Widget({ title, icon: Icon, count, action, className, delay, children }
 const PREVIEW_COUNT = 4;
 
 // Shows the first few items and tucks the rest behind a native expander, so it needs no client JS.
-function ShowMore({ items, empty }: { items: ReactNode[]; empty: string | null }) {
+function ShowMore({ items, empty, layout = "space-y-2", preview = PREVIEW_COUNT }: {
+  items: ReactNode[];
+  empty: string | null;
+  layout?: string;
+  preview?: number;
+}) {
   if (items.length === 0) return empty ? <p className="text-sm text-muted-foreground">{empty}</p> : null;
   return (
     <div className="space-y-2">
-      {items.slice(0, PREVIEW_COUNT)}
-      {items.length > PREVIEW_COUNT && (
+      <div className={layout}>{items.slice(0, preview)}</div>
+      {items.length > preview && (
         <details className="group space-y-2">
           <summary className="cursor-pointer list-none text-sm text-primary hover:underline pt-1">
             <span className="group-open:hidden">Show all {items.length}</span>
             <span className="hidden group-open:inline">Show less</span>
           </summary>
-          <div className="space-y-2 pt-2">{items.slice(PREVIEW_COUNT)}</div>
+          <div className={`pt-2 ${layout}`}>{items.slice(preview)}</div>
         </details>
       )}
+    </div>
+  );
+}
+
+type PublicProject = Awaited<ReturnType<typeof getPublicLibrary>>["projects"][number];
+
+function ProjectCard({ project }: { project: PublicProject }) {
+  return (
+    <div className="relative flex h-full flex-col rounded-lg border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        {/* Stretched link: the whole card opens the project, the repo link sits above it. */}
+        <Link href={`/projects/${project.id}`} className="font-medium text-sm truncate after:absolute after:inset-0">{project.name}</Link>
+        <Badge variant="outline" className={`capitalize text-[10px] shrink-0 ${statusColor[project.status] ?? defaultColor}`}>
+          {project.status.replace(/-/g, " ")}
+        </Badge>
+      </div>
+      {project.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{project.description}</p>}
+      {project.techStack && (
+        <div className="flex flex-wrap gap-1 mt-2">
+          {JSON.parse(project.techStack).slice(0, 4).map((tech: string) => (
+            <Badge key={tech} variant="outline" className="text-[10px] bg-muted/50">{tech}</Badge>
+          ))}
+        </div>
+      )}
+      {project.repoUrl && <div className="mt-auto pt-3"><RepoLink url={project.repoUrl} /></div>}
     </div>
   );
 }
