@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { books, concepts, projects, milestones, users, conceptProjects } from "./schema";
+import { books, concepts, projects, milestones, users, conceptProjects, bookConcepts, bookProjects } from "./schema";
 import { and, count, eq, desc, inArray, isNotNull, sql } from "drizzle-orm";
 
 export async function getDashboardMetrics(userId: string) {
@@ -211,4 +211,42 @@ export async function getFeaturedProfiles(limit = 6) {
 
   // Only show people who have actually added something.
   return rows.filter((r) => r.books + r.projects + r.concepts + r.milestones > 0) as (typeof rows[number] & { username: string })[];
+}
+
+export type GraphNode = { id: string; name: string; type: 'concept' | 'book' | 'project'; status: string; href: string };
+export type GraphLink = { source: string; target: string };
+
+/**
+ * One user's knowledge graph: concepts, books and projects as nodes, and the links
+ * between them as edges. Books and projects only appear once they're linked to something.
+ */
+export async function getKnowledgeGraph(userId: string): Promise<{ nodes: GraphNode[]; links: GraphLink[] }> {
+  const userConcepts = await db.select().from(concepts).where(eq(concepts.userId, userId));
+  const userBooks = await db.select().from(books).where(eq(books.userId, userId));
+  const userProjects = await db.select().from(projects).where(eq(projects.userId, userId));
+
+  const bookIds = userBooks.map((b) => b.id);
+  const conceptIds = userConcepts.map((c) => c.id);
+  const projectIds = userProjects.map((p) => p.id);
+
+  const bc = bookIds.length ? await db.select().from(bookConcepts).where(inArray(bookConcepts.bookId, bookIds)) : [];
+  const cp = conceptIds.length ? await db.select().from(conceptProjects).where(inArray(conceptProjects.conceptId, conceptIds)) : [];
+  const bp = projectIds.length ? await db.select().from(bookProjects).where(inArray(bookProjects.projectId, projectIds)) : [];
+
+  const links: GraphLink[] = [
+    ...bc.map((l) => ({ source: `book:${l.bookId}`, target: `concept:${l.conceptId}` })),
+    ...cp.map((l) => ({ source: `concept:${l.conceptId}`, target: `project:${l.projectId}` })),
+    ...bp.map((l) => ({ source: `book:${l.bookId}`, target: `project:${l.projectId}` })),
+  ];
+  const linked = new Set(links.flatMap((l) => [l.source, l.target]));
+
+  const nodes: GraphNode[] = [
+    ...userConcepts.map((c) => ({ id: `concept:${c.id}`, name: c.name, type: 'concept' as const, status: c.status, href: `/concepts/${c.id}` })),
+    ...userBooks.filter((b) => linked.has(`book:${b.id}`))
+      .map((b) => ({ id: `book:${b.id}`, name: b.title, type: 'book' as const, status: b.status, href: `/books/${b.id}` })),
+    ...userProjects.filter((p) => linked.has(`project:${p.id}`))
+      .map((p) => ({ id: `project:${p.id}`, name: p.name, type: 'project' as const, status: p.status, href: `/projects/${p.id}` })),
+  ];
+
+  return { nodes, links };
 }

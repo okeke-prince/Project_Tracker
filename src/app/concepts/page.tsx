@@ -6,10 +6,14 @@ import Link from "next/link";
 import { Compass } from "lucide-react";
 import { eq } from "drizzle-orm";
 import { requireUserId } from "@/lib/session";
+import { getKnowledgeGraph } from "@/db/queries";
+import { KnowledgeGraph } from "./knowledge-graph";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function ConceptsPage() {
   const userId = await requireUserId();
   const allConcepts = await db.select().from(concepts).where(eq(concepts.userId, userId));
+  const graph = await getKnowledgeGraph(userId);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -25,8 +29,22 @@ export default async function ConceptsPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Concepts Map</h1>
-          <p className="text-muted-foreground mt-2">Architecture concepts and patterns you are learning.</p>
+          <p className="text-muted-foreground mt-2">Architecture concepts and patterns you are learning, and how they connect to your books and projects.</p>
         </div>
+      </div>
+
+      <div className="surface relative h-[70vh] min-h-[480px] overflow-hidden rounded-2xl border bg-card dark:bg-card/40">
+        {graph.nodes.length > 0 ? (
+          <KnowledgeGraph nodes={graph.nodes} links={graph.links} />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
+            <Compass className="h-8 w-8 text-muted-foreground" />
+            <p className="max-w-sm text-muted-foreground">
+              Your map is empty. Add concepts, then link them to the books that taught you and the projects where you used them.
+            </p>
+            <Link href="/manage?tab=concepts" className={buttonVariants({ variant: "outline" })}>Add a concept</Link>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
