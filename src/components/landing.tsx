@@ -22,12 +22,13 @@ const preview = [
   { icon: GraduationCap, label: "Education", title: "Graduated, BSc Computer Science", date: "Jul 2024" },
 ];
 
-const headline = "Show people what you've been up to.";
+// The last words get the italic serif accent.
+const headline = "Show people what you've been".split(" ");
+const accent = "up to.".split(" ");
 
 export function Landing() {
   return (
     <div className="relative max-w-5xl mx-auto py-10 sm:py-16 space-y-24">
-      <div aria-hidden className="bg-dot-grid pointer-events-none absolute inset-x-0 -top-8 h-[520px] -z-10" />
 
       <section className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">
         <div className="space-y-7">
@@ -38,10 +39,10 @@ export function Landing() {
           </Reveal>
 
           <h1 className="text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.05]">
-            {headline.split(" ").map((word, i) => (
+            {[...headline, ...accent].map((word, i) => (
               <motion.span
                 key={i}
-                className="inline-block mr-[0.25em]"
+                className={`inline-block mr-[0.25em] ${i >= headline.length ? "text-accent-serif text-[1.1em]" : ""}`}
                 initial={{ opacity: 0, y: 24, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.7, ease: EASE, delay: 0.1 + i * 0.06 }}

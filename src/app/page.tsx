@@ -37,7 +37,7 @@ export default async function Dashboard() {
       {/* Top section - Hero & Metrics */}
       <section className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{greeting}{firstName ? `, ${firstName}` : ""}.</h1>
+          <h1 className="text-4xl font-semibold tracking-tight">{greeting}{firstName && <>, <span className="text-accent-serif text-[1.1em]">{firstName}</span></>}.</h1>
           <p className="text-muted-foreground mt-1">{today}</p>
         </div>
 

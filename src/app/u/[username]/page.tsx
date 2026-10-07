@@ -63,8 +63,7 @@ export default async function ProfilePage({ params }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-10">
-      <section className="relative -mx-4 -mt-8 px-4 pt-14 pb-4">
-        <div aria-hidden className="bg-dot-grid pointer-events-none absolute inset-0 -z-10" />
+      <section className="relative pt-6 pb-4">
         <Stagger className="flex flex-col sm:flex-row gap-6 sm:items-end">
           <StaggerItem>
             <Avatar className="h-24 w-24 text-2xl ring-1 ring-border ring-offset-4 ring-offset-background">
@@ -77,7 +76,7 @@ export default async function ProfilePage({ params }: Props) {
               <p className="font-mono text-xs tracking-widest text-muted-foreground">@{user.username}</p>
             </StaggerItem>
             <StaggerItem>
-              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">{name}</h1>
+              <h1 className="text-5xl sm:text-6xl tracking-tight text-accent-serif">{name}</h1>
             </StaggerItem>
             {user.headline && (
               <StaggerItem>
