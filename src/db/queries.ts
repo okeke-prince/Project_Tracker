@@ -81,6 +81,11 @@ export async function getUserByUsername(username: string) {
   });
 }
 
+/** What the navbar needs. Read from the DB because the session token keeps the picture from sign-in time. */
+export async function getNavUser(userId: string) {
+  return db.query.users.findFirst({ where: eq(users.id, userId), columns: { username: true, image: true, name: true } });
+}
+
 export async function getUsername(userId: string) {
   const user = await db.query.users.findFirst({ where: eq(users.id, userId), columns: { username: true } });
   return user?.username ?? null;

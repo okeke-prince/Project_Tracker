@@ -47,7 +47,7 @@ export default async function ManagePage({ searchParams }: { searchParams: Promi
 
   const profile = await db.query.users.findFirst({
     where: eq(users.id, userId),
-    columns: { name: true, username: true, headline: true, bio: true },
+    columns: { name: true, username: true, headline: true, bio: true, image: true },
   });
 
   return (

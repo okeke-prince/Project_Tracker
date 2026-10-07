@@ -6,7 +6,7 @@ import { MotionProvider } from "@/components/motion";
 import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { auth } from "@/auth";
-import { getUsername } from "@/db/queries";
+import { getNavUser } from "@/db/queries";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
@@ -33,7 +33,12 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  const username = session?.user?.id ? await getUsername(session.user.id) : null;
+  const navUser = session?.user?.id ? await getNavUser(session.user.id) : null;
+  const username = navUser?.username ?? null;
+  // Prefer the DB's name and picture over the copy baked into the session token.
+  const navSession = session?.user && navUser
+    ? { ...session, user: { ...session.user, image: navUser.image, name: navUser.name } }
+    : session;
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -49,7 +54,7 @@ export default async function RootLayout({
               {/* Site-wide textures: a dot grid that fades out down the page, and a light film grain. */}
               <div aria-hidden className="bg-dot-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[720px]" />
               <div aria-hidden className="bg-grain pointer-events-none fixed inset-0 z-[100]" />
-              <Navbar session={session} username={username} />
+              <Navbar session={navSession} username={username} />
               <main className="flex-1 container mx-auto px-4 py-8">
                 {children}
               </main>

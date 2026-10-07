@@ -5,7 +5,7 @@ import { books, projects, concepts, milestones, users, bookConcepts, conceptProj
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { bookSchema, projectSchema, conceptSchema, milestoneSchema, profileSchema } from "./schema";
-import { uploadBookFile, deleteBookFile } from "@/lib/storage";
+import { uploadBookFile, deleteBookFile, uploadAvatar, deleteAvatar, AVATAR_MAX_BYTES, AVATAR_TYPES } from "@/lib/storage";
 import { getActionUserId } from "@/lib/session";
 import { normalizeUsername, validateUsername, isUsernameTaken } from "@/lib/username";
 import { getUsername } from "@/db/queries";
@@ -389,7 +389,12 @@ export async function deleteMilestone(id: string) {
 export async function saveProfile(prevState: any, formData: FormData) {
   try {
     const userId = await getActionUserId();
-    const validatedData = profileSchema.parse(Object.fromEntries(formData.entries()));
+    const avatar = formData.get("avatar") as File | null;
+    const removeAvatar = formData.get("removeAvatar") === "on";
+    const fields = Object.fromEntries(formData.entries());
+    delete fields.avatar;
+    delete fields.removeAvatar;
+    const validatedData = profileSchema.parse(fields);
     const username = normalizeUsername(validatedData.username);
 
     const usernameError = validateUsername(username);
@@ -398,11 +403,25 @@ export async function saveProfile(prevState: any, formData: FormData) {
 
     const previousUsername = await getUsername(userId);
 
+    // Profile picture: a new upload wins over "remove". Uploaded pictures are served by
+    // /api/avatar/<id>; the ?v= changes each time so browsers fetch the new one.
+    let image: string | null | undefined = undefined;
+    if (avatar && avatar.size > 0) {
+      if (!AVATAR_TYPES.includes(avatar.type)) return { success: false, error: "Use a PNG, JPG, WebP or GIF image." };
+      if (avatar.size > AVATAR_MAX_BYTES) return { success: false, error: "Profile pictures can be up to 2 MB." };
+      await uploadAvatar(userId, avatar);
+      image = `/api/avatar/${userId}?v=${Date.now()}`;
+    } else if (removeAvatar) {
+      await deleteAvatar(userId).catch((err) => console.warn("Could not delete avatar:", err));
+      image = null;
+    }
+
     await db.update(users).set({
       name: validatedData.name,
       username,
       headline: validatedData.headline || null,
       bio: validatedData.bio || null,
+      ...(image !== undefined ? { image } : {}),
     }).where(eq(users.id, userId));
 
     if (previousUsername) revalidatePath(`/${previousUsername}`);
