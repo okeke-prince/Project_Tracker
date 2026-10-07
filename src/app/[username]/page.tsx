@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getUserByUsername, getTimeline, getPublicLibrary } from "@/db/queries";
+import { getUserByUsername, getTimeline, getPublicLibrary, getKnowledgeGraph } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/session";
 import { Timeline } from "@/components/timeline";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { RepoLink } from "@/components/repo-link";
+import { LazyKnowledgeGraph } from "@/components/knowledge-graph";
 import { buttonVariants } from "@/components/ui/button";
-import { Book as BookIcon, Compass, Folder, Milestone, Pencil, Star, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Book as BookIcon, Compass, Folder, Milestone, Network, Pencil, Star, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 type Props = { params: Promise<{ username: string }> };
@@ -47,10 +48,11 @@ export default async function ProfilePage({ params }: Props) {
   const user = await getUserByUsername(username);
   if (!user) notFound();
 
-  const [viewerId, timeline, library] = await Promise.all([
+  const [viewerId, timeline, library, graph] = await Promise.all([
     getCurrentUserId(),
     getTimeline(user.id),
     getPublicLibrary(user.id),
+    getKnowledgeGraph(user.id),
   ]);
   const isOwner = viewerId === user.id;
   const readingNow = library.books.filter((b) => b.status === "reading");
@@ -112,6 +114,24 @@ export default async function ProfilePage({ params }: Props) {
           </StaggerItem>
         ))}
       </Stagger>
+
+      {graph.nodes.length > 0 && (
+        <Widget
+          title="Knowledge map"
+          icon={Network}
+          delay={0.05}
+          action={
+            <Link href={`/${user.username}/map`} className="group inline-flex items-center text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+              Explore in 3D <ArrowUpRight className="ml-0.5 h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            </Link>
+          }
+        >
+          <p className="-mt-2 mb-3 text-sm text-muted-foreground">How {name}&apos;s concepts connect to the books that taught them and the projects that used them.</p>
+          <Link href={`/${user.username}/map`} aria-label={`Explore ${name}'s knowledge map`} className="block h-[280px] overflow-hidden rounded-xl border bg-background/40 sm:h-[360px]">
+            <LazyKnowledgeGraph nodes={graph.nodes} links={graph.links} compact />
+          </Link>
+        </Widget>
+      )}
 
       <section className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 items-start [&>*]:min-w-0">
         <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-3" delay={0.05}>
@@ -191,10 +211,11 @@ export default async function ProfilePage({ params }: Props) {
 
 // Widgets
 
-function Widget({ title, icon: Icon, count, className, delay, children }: {
+function Widget({ title, icon: Icon, count, action, className, delay, children }: {
   title: string;
   icon: LucideIcon;
   count?: number;
+  action?: ReactNode;
   className?: string;
   delay?: number;
   children: ReactNode;
@@ -209,6 +230,7 @@ function Widget({ title, icon: Icon, count, className, delay, children }: {
           {count !== undefined && (
             <span className="rounded-full border px-2 py-0.5 font-mono text-[11px] text-muted-foreground">{count}</span>
           )}
+          {action}
         </CardHeader>
         <CardContent>{children}</CardContent>
       </Card>

@@ -7,7 +7,7 @@ import { Compass } from "lucide-react";
 import { eq } from "drizzle-orm";
 import { requireUserId } from "@/lib/session";
 import { getKnowledgeGraph } from "@/db/queries";
-import { KnowledgeGraph } from "./knowledge-graph";
+import { KnowledgeGraph } from "@/components/knowledge-graph";
 import { buttonVariants } from "@/components/ui/button";
 
 export default async function ConceptsPage() {

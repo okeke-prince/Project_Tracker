@@ -1,7 +1,9 @@
 "use client";
 
 // The 3D scene itself. Imported only on the client (see knowledge-graph.tsx) because
-// three.js needs the browser's WebGL.
+// three.js needs the browser's WebGL. In compact mode (the profile preview) it only
+// spins: a cover sits over the canvas so dragging scrolls the page on phones instead
+// of orbiting, and taps fall through to the link around the preview.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
@@ -23,7 +25,7 @@ const TYPE_LABEL = { concept: "Concept", book: "Book", project: "Project" } as c
 
 const endId = (end: string | Node) => (typeof end === "string" ? end : end.id);
 
-export default function KnowledgeGraph3D({ nodes, links }: { nodes: GraphNode[]; links: GraphLink[] }) {
+export default function KnowledgeGraph3D({ nodes, links, compact = false }: { nodes: GraphNode[]; links: GraphLink[]; compact?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fgRef = useRef<any>(undefined);
@@ -123,6 +125,7 @@ export default function KnowledgeGraph3D({ nodes, links }: { nodes: GraphNode[];
           backgroundColor="rgba(0,0,0,0)"
           showNavInfo={false}
           controlType="orbit"
+          enablePointerInteraction={!compact}
           nodeRelSize={4}
           nodeResolution={16}
           nodeVal={(n: Node) => (n.type === "concept" ? 2 : 1.2) + n.degree * 0.8}
@@ -155,6 +158,8 @@ export default function KnowledgeGraph3D({ nodes, links }: { nodes: GraphNode[];
         />
       )}
 
+      {compact && <div aria-hidden className="absolute inset-0" />}
+
       {/* Legend */}
       <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap gap-3 font-mono sm:left-4 sm:top-4 sm:gap-4 text-[11px] uppercase tracking-widest text-muted-foreground">
         {(["concept", "book", "project"] as const).map((type) => (
@@ -165,9 +170,11 @@ export default function KnowledgeGraph3D({ nodes, links }: { nodes: GraphNode[];
         ))}
       </div>
 
-      <p className="pointer-events-none absolute bottom-4 left-4 hidden text-xs text-muted-foreground sm:block">
-        Drag to orbit · scroll to zoom · click a node to focus
-      </p>
+      {!compact && (
+        <p className="pointer-events-none absolute bottom-4 left-4 hidden text-xs text-muted-foreground sm:block">
+          Drag to orbit · scroll to zoom · click a node to focus
+        </p>
+      )}
 
       {/* Details for the clicked node */}
       <AnimatePresence>
