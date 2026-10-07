@@ -1,4 +1,5 @@
-import { getDashboardMetrics, getInProgressItems, getMasterySnapshot, getRecentlyMastered, getTimeline, getUsername } from "@/db/queries";
+import { getDashboardMetrics, getInProgressItems, getMasterySnapshot, getRecentlyMastered, getTimeline, getUsername, getFeaturedProfiles } from "@/db/queries";
+import { headers } from "next/headers";
 import { Timeline } from "@/components/timeline";
 import { Landing } from "@/components/landing";
 import { Book, Compass, Folder, ChevronRight, CheckCircle2, ArrowRight, BookOpen, PenTool } from "lucide-react";
@@ -12,7 +13,10 @@ import { auth } from "@/auth";
 export default async function Dashboard() {
   const session = await auth();
   const userId = session?.user?.id;
-  if (!userId) return <Landing />;
+  if (!userId) {
+    const host = (await headers()).get("host") ?? "timeliner";
+    return <Landing featured={await getFeaturedProfiles()} host={host} />;
+  }
 
   const metrics = await getDashboardMetrics(userId);
   const inProgress = await getInProgressItems(userId);

@@ -1,10 +1,24 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { buttonVariants } from "@/components/ui/button";
 import { Lift, Reveal, Stagger, StaggerItem } from "@/components/motion";
-import { ArrowRight, BadgeCheck, BookOpen, Compass, GraduationCap, Rocket } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookOpen, Compass, GraduationCap, Lock, Rocket, Share2, UserPlus } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ClaimUsername } from "@/components/claim-username";
+
+export type FeaturedProfile = {
+  username: string;
+  name: string | null;
+  image: string | null;
+  headline: string | null;
+  books: number;
+  projects: number;
+  concepts: number;
+  milestones: number;
+};
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -23,10 +37,16 @@ const preview = [
 ];
 
 // The last words get the italic serif accent.
+const steps = [
+  { icon: UserPlus, title: "Claim your link", text: "Pick a username and get your own page at /u/yourname." },
+  { icon: GraduationCap, title: "Add your journey", text: "Log milestones, books, concepts and projects, and link them together." },
+  { icon: Share2, title: "Share it", text: "Put the link in your CV, LinkedIn or GitHub so people see everything you've covered." },
+];
+
 const headline = "Show people what you've been".split(" ");
 const accent = "up to.".split(" ");
 
-export function Landing() {
+export function Landing({ featured, host }: { featured: FeaturedProfile[]; host: string }) {
   return (
     <div className="relative max-w-5xl mx-auto py-10 sm:py-16 space-y-24">
 
@@ -60,13 +80,11 @@ export function Landing() {
           </Reveal>
 
           <Reveal delay={0.65}>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/register" className={`${buttonVariants({ size: "lg" })} group`}>
-                Create your timeline
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-              <Link href="/login" className={buttonVariants({ size: "lg", variant: "outline" })}>Sign in</Link>
-            </div>
+            <ClaimUsername host={host} />
+            <p className="mt-3 pl-5 text-sm text-muted-foreground">
+              Already have one?{" "}
+              <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">Sign in</Link>
+            </p>
           </Reveal>
         </div>
 
@@ -128,6 +146,103 @@ export function Landing() {
           </StaggerItem>
         ))}
       </Stagger>
+
+      <section className="space-y-8">
+        <Reveal>
+          <SectionHeading eyebrow="How it works" title={<>Three steps to your <span className="text-accent-serif text-[1.1em]">timeline</span></>} />
+        </Reveal>
+        <Stagger className="grid gap-4 sm:grid-cols-3">
+          {steps.map(({ icon: Icon, title, text }, i) => (
+            <StaggerItem key={title}>
+              <div className="relative h-full rounded-xl border border-dashed p-6">
+                <span className="font-mono text-xs text-muted-foreground">0{i + 1}</span>
+                <Icon className="mt-4 h-5 w-5" />
+                <h3 className="mt-3 font-semibold">{title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{text}</p>
+              </div>
+            </StaggerItem>
+          ))}
+        </Stagger>
+      </section>
+
+      {featured.length > 0 && (
+        <section className="space-y-8">
+          <Reveal>
+            <SectionHeading eyebrow="Featured" title={<>See what people have been <span className="text-accent-serif text-[1.1em]">up to</span></>} />
+          </Reveal>
+          <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((p) => (
+              <StaggerItem key={p.username}>
+                <Lift className="h-full">
+                  <Link href={`/u/${p.username}`} className="surface group flex h-full flex-col rounded-xl border bg-card p-5 transition-colors hover:border-foreground/20 dark:bg-card/50">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={p.image || ""} alt={p.name || p.username} />
+                        <AvatarFallback>{(p.name || p.username).slice(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="font-semibold truncate">{p.name || p.username}</p>
+                        <p className="font-mono text-xs text-muted-foreground">@{p.username}</p>
+                      </div>
+                      <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+                    </div>
+                    {p.headline && <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{p.headline}</p>}
+                    <div className="mt-auto flex gap-4 pt-4 font-mono text-[11px] text-muted-foreground">
+                      <span>{p.books} books</span>
+                      <span>{p.concepts} concepts</span>
+                      <span>{p.projects} projects</span>
+                    </div>
+                  </Link>
+                </Lift>
+              </StaggerItem>
+            ))}
+          </Stagger>
+        </section>
+      )}
+
+      <Reveal>
+        <div className="flex items-start gap-4 rounded-xl border bg-muted/50 p-5">
+          <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            <span className="font-medium text-foreground">Your files stay yours.</span>{" "}
+            People can see which books you&apos;ve read, but your book files, reading progress and notes are never public.
+          </p>
+        </div>
+      </Reveal>
+
+      <Reveal>
+        <section className="text-center space-y-5 py-6">
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+            Start your <span className="text-accent-serif text-[1.1em]">timeline</span> today.
+          </h2>
+          <Link href="/register" className={`${buttonVariants({ size: "lg" })} group`}>
+            Create your timeline
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </section>
+      </Reveal>
+
+      <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-8 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Compass className="h-4 w-4 text-foreground" />
+          <span>Knowledge Tracker</span>
+        </div>
+        <nav className="flex gap-6">
+          <Link href="/register" className="hover:text-foreground transition-colors">Sign up</Link>
+          <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
+          <a href="https://github.com/okeke-prince" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
+        </nav>
+        <span className="font-mono text-xs">© {new Date().getFullYear()}</span>
+      </footer>
+    </div>
+  );
+}
+
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">{eyebrow}</p>
+      <h2 className="text-3xl font-semibold tracking-tight">{title}</h2>
     </div>
   );
 }

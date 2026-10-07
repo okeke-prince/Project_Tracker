@@ -1,6 +1,6 @@
 import { db } from "./index";
 import { books, concepts, projects, milestones, users, conceptProjects } from "./schema";
-import { and, count, eq, desc, inArray } from "drizzle-orm";
+import { and, count, eq, desc, inArray, isNotNull, sql } from "drizzle-orm";
 
 export async function getDashboardMetrics(userId: string) {
   const booksFinished = await db.select({ count: count() }).from(books).where(and(eq(books.userId, userId), eq(books.status, 'finished')));
@@ -184,4 +184,31 @@ export async function getOwner(userId: string) {
     where: eq(users.id, userId),
     columns: { name: true, username: true },
   });
+}
+
+/** The most active public profiles, for the landing page. */
+export async function getFeaturedProfiles(limit = 6) {
+  const bookCount = sql<number>`(select count(*) from ${books} where ${books.userId} = ${users.id} and ${books.status} = 'finished')`;
+  const projectCount = sql<number>`(select count(*) from ${projects} where ${projects.userId} = ${users.id})`;
+  const conceptCount = sql<number>`(select count(*) from ${concepts} where ${concepts.userId} = ${users.id})`;
+  const milestoneCount = sql<number>`(select count(*) from ${milestones} where ${milestones.userId} = ${users.id})`;
+
+  const rows = await db
+    .select({
+      username: users.username,
+      name: users.name,
+      image: users.image,
+      headline: users.headline,
+      books: bookCount,
+      projects: projectCount,
+      concepts: conceptCount,
+      milestones: milestoneCount,
+    })
+    .from(users)
+    .where(isNotNull(users.username))
+    .orderBy(desc(sql`${bookCount} + ${projectCount} + ${conceptCount} + ${milestoneCount}`))
+    .limit(limit);
+
+  // Only show people who have actually added something.
+  return rows.filter((r) => r.books + r.projects + r.concepts + r.milestones > 0) as (typeof rows[number] & { username: string })[];
 }

@@ -95,3 +95,12 @@ export async function handleSignOut() {
 export async function signInWithGoogle() {
   await signIn('google', { redirectTo: '/' });
 }
+
+/** Live check for the "claim your username" box on the landing page. */
+export async function checkUsernameAvailability(raw: string) {
+  const username = normalizeUsername(raw);
+  const error = validateUsername(username);
+  if (error) return { username, available: false, error };
+  if (await isUsernameTaken(username)) return { username, available: false, error: "That one's taken." };
+  return { username, available: true, error: null };
+}

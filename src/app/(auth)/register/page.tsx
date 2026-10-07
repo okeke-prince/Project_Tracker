@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { Suspense, useActionState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { register, authenticate } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,17 @@ function SubmitButton() {
 }
 
 export default function RegisterPage() {
+  // useSearchParams needs a Suspense boundary in the App Router.
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
+  // Prefilled when someone claims a username on the landing page.
+  const claimedUsername = useSearchParams().get("username") ?? "";
   const [state, formAction] = useActionState(register, null);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -62,6 +74,7 @@ export default function RegisterPage() {
                 name="username"
                 type="text"
                 placeholder="johndoe"
+                defaultValue={claimedUsername}
                 required
                 minLength={3}
                 maxLength={30}
