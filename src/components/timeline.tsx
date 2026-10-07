@@ -92,7 +92,7 @@ export function Timeline({ events, emptyMessage }: { events: TimelineEvent[]; em
               </motion.span>
 
               <motion.div
-                className="group rounded-xl border bg-card/60 p-4 backdrop-blur-sm transition-colors hover:border-foreground/20 hover:bg-card"
+                className="surface group rounded-xl border bg-card p-4 backdrop-blur-sm dark:bg-card/60 transition-colors hover:border-foreground/20 hover:bg-card"
                 whileHover={{ y: -2 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               >

@@ -100,9 +100,9 @@ export default async function ProfilePage({ params }: Props) {
         )}
       </section>
 
-      <Stagger className="grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border bg-border">
+      <Stagger className="surface grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border bg-border">
         {stats.map((s) => (
-          <StaggerItem key={s.label} className="bg-background p-5">
+          <StaggerItem key={s.label} className="bg-card p-5 dark:bg-background">
             <CountUp value={s.value} className="block text-3xl font-semibold tabular-nums tracking-tight" />
             <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">{s.label}</p>
           </StaggerItem>
@@ -195,7 +195,7 @@ function Widget({ title, icon: Icon, count, className, delay, children }: {
 }) {
   return (
     <Reveal className={className} delay={delay}>
-      <Card className="shadow-none bg-card/50 transition-colors hover:border-foreground/15">
+      <Card className="surface shadow-none bg-card transition-colors hover:border-foreground/15 dark:bg-card/50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle className="text-sm font-medium flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
             <Icon className="h-4 w-4 text-foreground" /> {title}

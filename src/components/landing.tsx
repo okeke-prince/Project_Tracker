@@ -71,7 +71,7 @@ export function Landing() {
         </div>
 
         {/* A small sample timeline that builds itself, so visitors see what they'll get. */}
-        <div className="relative rounded-2xl border bg-card/50 p-6 backdrop-blur-sm">
+        <div className="relative rounded-2xl border bg-muted/60 p-6 backdrop-blur-sm dark:bg-card/50">
           <div className="relative ml-3">
             <motion.span
               aria-hidden
@@ -92,7 +92,7 @@ export function Landing() {
                   <span className="absolute -left-[13px] top-2 flex h-[26px] w-[26px] items-center justify-center rounded-full border bg-background">
                     <item.icon className="h-3 w-3" />
                   </span>
-                  <div className="rounded-lg border bg-background/80 px-3 py-2.5">
+                  <div className="surface rounded-lg border bg-card px-3 py-2.5 dark:bg-background/80">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{item.label}</span>
                       <span className="font-mono text-[10px] text-muted-foreground">{item.date}</span>
@@ -117,8 +117,8 @@ export function Landing() {
         {features.map(({ icon: Icon, title, text }) => (
           <StaggerItem key={title}>
             <Lift className="h-full">
-              <div className="h-full rounded-xl border bg-card/50 p-6 transition-colors hover:border-foreground/20">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-background">
+              <div className="surface h-full rounded-xl border bg-card p-6 transition-colors hover:border-foreground/20 dark:bg-card/50">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg border bg-muted/60 dark:bg-background">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-4 font-semibold">{title}</h3>
