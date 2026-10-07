@@ -13,9 +13,15 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono"
 // Display serif, used sparingly in italics for accent words in headings.
 const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument-serif" });
 
+// Link previews need absolute URLs. Set NEXT_PUBLIC_SITE_URL to the live address when deploying.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Knowledge Tracker",
-  description: "Track your software architecture learning journey.",
+  description: "A public timeline of your milestones, books, concepts and projects.",
+  openGraph: { siteName: "Knowledge Tracker", type: "website" },
+  twitter: { card: "summary_large_image" },
   appleWebApp: {
     title: "ArchitectKT",
     statusBarStyle: "black-translucent",

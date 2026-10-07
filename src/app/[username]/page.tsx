@@ -24,9 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const user = await getUserByUsername(username);
   if (!user) return { title: "Profile not found" };
   const name = user.name || user.username;
+  const title = `${name} · Timeline`;
+  const description = user.headline || `What ${name} has been reading, learning and building.`;
   return {
-    title: `${name} · Timeline`,
-    description: user.headline || `What ${name} has been reading, learning and building.`,
+    title,
+    description,
+    openGraph: { title, description, type: "profile", url: `/${user.username}` },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
