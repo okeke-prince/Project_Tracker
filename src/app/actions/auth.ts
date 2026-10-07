@@ -9,6 +9,7 @@ import { deleteAvatar, deleteBookFile } from "@/lib/storage";
 import bcrypt from "bcryptjs";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { clientIp, ONE_HOUR, rateLimit } from "@/lib/rate-limit";
 import { normalizeUsername, validateUsername, isUsernameTaken } from "@/lib/username";
 
@@ -108,6 +109,8 @@ export async function signInWithGoogle() {
 }
 
 export async function signInWithGitHub() {
+  // Without keys Auth.js would throw; send people back with a readable message instead.
+  if (!process.env.AUTH_GITHUB_ID || !process.env.AUTH_GITHUB_SECRET) redirect('/login?error=Configuration');
   await signIn('github', { redirectTo: '/' });
 }
 
