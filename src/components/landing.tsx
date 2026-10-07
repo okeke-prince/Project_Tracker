@@ -48,7 +48,7 @@ const accent = "up to.".split(" ");
 
 export function Landing({ featured, host }: { featured: FeaturedProfile[]; host: string }) {
   return (
-    <div className="relative max-w-5xl mx-auto py-10 sm:py-16 space-y-24">
+    <div className="relative max-w-5xl mx-auto py-6 sm:py-16 space-y-16 sm:space-y-24">
 
       <section className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">
         <div className="space-y-7">
@@ -58,7 +58,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
             </span>
           </Reveal>
 
-          <h1 className="text-4xl sm:text-6xl font-semibold tracking-tight leading-[1.05]">
+          <h1 className="text-[2.6rem] sm:text-6xl font-semibold tracking-tight leading-[1.05] text-balance">
             {[...headline, ...accent].map((word, i) => (
               <motion.span
                 key={i}
@@ -73,7 +73,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
           </h1>
 
           <Reveal delay={0.5}>
-            <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
               A public timeline of your milestones, the books you&apos;ve read, the concepts you&apos;ve learned and
               the projects where you applied them, so anyone can get to know you.
             </p>
@@ -89,7 +89,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
         </div>
 
         {/* A small sample timeline that builds itself, so visitors see what they'll get. */}
-        <div className="relative rounded-2xl border bg-muted/60 p-6 backdrop-blur-sm dark:bg-card/50">
+        <div className="relative rounded-2xl border bg-muted/60 p-4 sm:p-6 backdrop-blur-sm dark:bg-card/50">
           <div className="relative ml-3">
             <motion.span
               aria-hidden
@@ -115,7 +115,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{item.label}</span>
                       <span className="font-mono text-[10px] text-muted-foreground">{item.date}</span>
                     </div>
-                    <p className="text-sm font-medium leading-snug">{item.title}</p>
+                    <p className="text-sm font-medium leading-snug text-pretty">{item.title}</p>
                     {item.tags && (
                       <div className="mt-1.5 flex gap-1">
                         {item.tags.map((t) => (
@@ -212,7 +212,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
 
       <Reveal>
         <section className="text-center space-y-5 py-6">
-          <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-balance">
             Start your <span className="text-accent-serif text-[1.1em]">timeline</span> today.
           </h2>
           <Link href="/register" className={`${buttonVariants({ size: "lg" })} group`}>
@@ -242,7 +242,7 @@ function SectionHeading({ eyebrow, title }: { eyebrow: string; title: ReactNode 
   return (
     <div className="space-y-2">
       <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">{eyebrow}</p>
-      <h2 className="text-3xl font-semibold tracking-tight">{title}</h2>
+      <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">{title}</h2>
     </div>
   );
 }

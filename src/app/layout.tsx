@@ -55,7 +55,7 @@ export default async function RootLayout({
               <div aria-hidden className="bg-dot-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[720px]" />
               <div aria-hidden className="bg-grain pointer-events-none fixed inset-0 z-[100]" />
               <Navbar session={navSession} username={username} />
-              <main className="flex-1 container mx-auto px-4 py-8">
+              <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
                 {children}
               </main>
             </div>

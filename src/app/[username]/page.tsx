@@ -66,11 +66,11 @@ export default async function ProfilePage({ params }: Props) {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10">
+    <div className="max-w-6xl mx-auto space-y-8 sm:space-y-10">
       <section className="relative pt-6 pb-4">
         <Stagger className="flex flex-col sm:flex-row gap-6 sm:items-end">
           <StaggerItem>
-            <Avatar className="h-24 w-24 text-2xl ring-1 ring-border ring-offset-4 ring-offset-background">
+            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 text-2xl ring-1 ring-border ring-offset-4 ring-offset-background">
               <AvatarImage src={user.image || ""} alt={name} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
@@ -80,7 +80,7 @@ export default async function ProfilePage({ params }: Props) {
               <p className="font-mono text-xs tracking-widest text-muted-foreground">@{user.username}</p>
             </StaggerItem>
             <StaggerItem>
-              <h1 className="text-5xl sm:text-6xl tracking-tight text-accent-serif">{name}</h1>
+              <h1 className="text-[2.75rem] leading-none sm:text-6xl tracking-tight text-accent-serif break-words">{name}</h1>
             </StaggerItem>
             {user.headline && (
               <StaggerItem>
@@ -106,14 +106,14 @@ export default async function ProfilePage({ params }: Props) {
 
       <Stagger className="surface grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border bg-border">
         {stats.map((s) => (
-          <StaggerItem key={s.label} className="bg-card p-5 dark:bg-background">
+          <StaggerItem key={s.label} className="bg-card p-4 sm:p-5 dark:bg-background">
             <CountUp value={s.value} className="block text-3xl font-semibold tabular-nums tracking-tight" />
             <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">{s.label}</p>
           </StaggerItem>
         ))}
       </Stagger>
 
-      <section className="grid gap-6 lg:grid-cols-3 items-start">
+      <section className="grid gap-4 sm:gap-6 lg:grid-cols-3 items-start">
         <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-3" delay={0.05}>
           <Timeline
             events={timeline}

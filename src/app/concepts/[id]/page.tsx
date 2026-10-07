@@ -50,18 +50,18 @@ export default async function ConceptDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <Badge variant="outline" className={`capitalize text-sm px-3 py-1 ${getStatusColor(concept.status)}`}>
             {concept.status}
           </Badge>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {concept.tags && JSON.parse(concept.tags).map((tag: string) => (
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
           </div>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">{concept.name}</h1>
-        <p className="text-xl text-muted-foreground">{concept.shortDescription}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">{concept.name}</h1>
+        <p className="text-lg sm:text-xl text-muted-foreground">{concept.shortDescription}</p>
       </div>
 
       {/* Notes are private to the owner. */}

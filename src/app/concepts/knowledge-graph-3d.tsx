@@ -156,7 +156,7 @@ export default function KnowledgeGraph3D({ nodes, links }: { nodes: GraphNode[];
       )}
 
       {/* Legend */}
-      <div className="pointer-events-none absolute left-4 top-4 flex gap-4 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+      <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap gap-3 font-mono sm:left-4 sm:top-4 sm:gap-4 text-[11px] uppercase tracking-widest text-muted-foreground">
         {(["concept", "book", "project"] as const).map((type) => (
           <span key={type} className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: colors[type] }} />
@@ -165,7 +165,7 @@ export default function KnowledgeGraph3D({ nodes, links }: { nodes: GraphNode[];
         ))}
       </div>
 
-      <p className="pointer-events-none absolute bottom-4 left-4 text-xs text-muted-foreground">
+      <p className="pointer-events-none absolute bottom-4 left-4 hidden text-xs text-muted-foreground sm:block">
         Drag to orbit · scroll to zoom · click a node to focus
       </p>
 
@@ -178,7 +178,7 @@ export default function KnowledgeGraph3D({ nodes, links }: { nodes: GraphNode[];
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.25 }}
-            className="surface absolute bottom-4 right-4 w-72 rounded-xl border bg-card/90 p-4 backdrop-blur"
+            className="surface absolute inset-x-3 bottom-3 rounded-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-72 border bg-card/90 p-4 backdrop-blur"
           >
             <div className="flex items-start justify-between gap-2">
               <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">

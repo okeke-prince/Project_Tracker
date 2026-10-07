@@ -38,8 +38,8 @@ export function ClaimUsername({ host }: { host: string }) {
       }}
       className="w-full max-w-md space-y-2"
     >
-      <div className="surface flex items-center rounded-full border bg-card p-1.5 pl-5 transition-colors focus-within:border-foreground/40 dark:bg-card/50">
-        <span className="font-mono text-sm text-muted-foreground whitespace-nowrap">{host}/</span>
+      <div className="surface flex items-center rounded-full border bg-card p-1.5 pl-4 sm:pl-5 transition-colors focus-within:border-foreground/40 dark:bg-card/50">
+        <span className="font-mono text-sm text-muted-foreground whitespace-nowrap"><span className="hidden sm:inline">{host}</span>/</span>
         <input
           value={value}
           onChange={(e) => {
@@ -61,7 +61,7 @@ export function ClaimUsername({ host }: { host: string }) {
         <button
           type="submit"
           disabled={!shown?.available || checking}
-          className="group inline-flex items-center rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-40"
+          className="group inline-flex shrink-0 items-center rounded-full bg-primary px-3.5 py-2 text-sm sm:px-4 font-medium text-primary-foreground transition-opacity disabled:opacity-40"
         >
           Claim
           <ArrowRight className="ml-1.5 h-3.5 w-3.5 transition-transform group-enabled:group-hover:translate-x-0.5" />

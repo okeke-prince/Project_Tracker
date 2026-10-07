@@ -28,12 +28,12 @@ export default async function ConceptsPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Concepts Map</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Concepts Map</h1>
           <p className="text-muted-foreground mt-2">Architecture concepts and patterns you are learning, and how they connect to your books and projects.</p>
         </div>
       </div>
 
-      <div className="surface relative h-[70vh] min-h-[480px] overflow-hidden rounded-2xl border bg-card dark:bg-card/40">
+      <div className="surface relative h-[60vh] min-h-[380px] sm:h-[70vh] sm:min-h-[480px] overflow-hidden rounded-2xl border bg-card dark:bg-card/40">
         {graph.nodes.length > 0 ? (
           <KnowledgeGraph nodes={graph.nodes} links={graph.links} />
         ) : (

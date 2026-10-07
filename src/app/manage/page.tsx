@@ -53,18 +53,20 @@ export default async function ManagePage({ searchParams }: { searchParams: Promi
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Manage Knowledge</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Manage Knowledge</h1>
         <p className="text-muted-foreground mt-2">Add, update, or remove your books, projects, concepts and milestones.</p>
       </div>
 
       <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 max-w-[750px]">
+        <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+        <TabsList className="inline-flex w-max min-w-full sm:grid sm:w-full sm:min-w-0 sm:grid-cols-5 sm:max-w-[750px]">
           <TabsTrigger value="books">Books</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
           <TabsTrigger value="concepts">Concepts</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
         </TabsList>
+        </div>
         <TabsContent value="books" className="mt-6">
           <BooksSection books={allBooks} concepts={allConcepts} projects={allProjects} />
         </TabsContent>

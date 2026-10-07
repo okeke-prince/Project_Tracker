@@ -51,18 +51,18 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <Badge variant="outline" className={`capitalize text-sm px-3 py-1 ${getStatusColor(project.status)}`}>
             {project.status.replace('-', ' ')}
           </Badge>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {project.tags && JSON.parse(project.tags).map((tag: string) => (
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
           </div>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">{project.name}</h1>
-        <p className="text-xl text-muted-foreground">{project.description}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">{project.name}</h1>
+        <p className="text-lg sm:text-xl text-muted-foreground">{project.description}</p>
         {project.repoUrl && <RepoLink url={project.repoUrl} variant="button" />}
       </div>
       

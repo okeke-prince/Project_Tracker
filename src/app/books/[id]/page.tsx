@@ -56,11 +56,11 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
       </Link>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <Badge variant="outline" className={`capitalize text-sm px-3 py-1 ${getStatusColor(book.status)}`}>
             {book.status.replace('-', ' ')}
           </Badge>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {book.tags && JSON.parse(book.tags).map((tag: string) => (
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
@@ -73,8 +73,8 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
             </div>
           )}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">{book.title}</h1>
-        <p className="text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">{book.title}</h1>
+        <p className="text-lg sm:text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
         {!isOwner && owner?.username && (
           <p className="text-sm text-muted-foreground">
             On <Link href={`/${owner.username}`} className="text-primary hover:underline">{owner.name || owner.username}</Link>&apos;s shelf
