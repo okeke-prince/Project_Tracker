@@ -128,3 +128,11 @@
     @apply font-sans;
   }
 }
+@layer utilities {
+  /* Faint dotted backdrop that fades out toward the bottom. */
+  .bg-dot-grid {
+    background-image: radial-gradient(color-mix(in oklch, var(--foreground) 14%, transparent) 1px, transparent 1px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, black 30%, transparent 100%);
+  }
+}

@@ -7,6 +7,7 @@ import { Timeline } from "@/components/timeline";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { buttonVariants } from "@/components/ui/button";
 import { Book as BookIcon, Compass, Folder, Milestone, Pencil, Star, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -24,15 +25,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// Monochrome status styles: done is solid, in progress is outlined, everything else is muted.
+const DONE = "bg-foreground text-background border-transparent";
+const ACTIVE = "border-foreground/40 text-foreground";
 const statusColor: Record<string, string> = {
-  finished: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  mastered: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  completed: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  reading: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
-  applied: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
-  "in-progress": "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
+  finished: DONE,
+  mastered: DONE,
+  completed: DONE,
+  reading: ACTIVE,
+  applied: ACTIVE,
+  "in-progress": ACTIVE,
 };
-const defaultColor = "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+const defaultColor = "text-muted-foreground";
 
 export default async function ProfilePage({ params }: Props) {
   const { username } = await params;
@@ -58,46 +62,63 @@ export default async function ProfilePage({ params }: Props) {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700">
-      <section className="flex flex-col sm:flex-row gap-6 sm:items-center">
-        <Avatar className="h-20 w-20 text-xl">
-          <AvatarImage src={user.image || ""} alt={name} />
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0 space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">{name}</h1>
-          <p className="text-sm text-muted-foreground">@{user.username}</p>
-          {user.headline && <p className="text-lg">{user.headline}</p>}
-        </div>
-        {isOwner && (
-          <Link href="/manage?tab=profile" className={buttonVariants({ variant: "outline", size: "sm" })}>
-            <Pencil className="mr-2 h-3 w-3" /> Edit profile
-          </Link>
+    <div className="max-w-6xl mx-auto space-y-10">
+      <section className="relative -mx-4 -mt-8 px-4 pt-14 pb-4">
+        <div aria-hidden className="bg-dot-grid pointer-events-none absolute inset-0 -z-10" />
+        <Stagger className="flex flex-col sm:flex-row gap-6 sm:items-end">
+          <StaggerItem>
+            <Avatar className="h-24 w-24 text-2xl ring-1 ring-border ring-offset-4 ring-offset-background">
+              <AvatarImage src={user.image || ""} alt={name} />
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+          </StaggerItem>
+          <div className="flex-1 min-w-0 space-y-2">
+            <StaggerItem>
+              <p className="font-mono text-xs tracking-widest text-muted-foreground">@{user.username}</p>
+            </StaggerItem>
+            <StaggerItem>
+              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">{name}</h1>
+            </StaggerItem>
+            {user.headline && (
+              <StaggerItem>
+                <p className="text-lg text-muted-foreground">{user.headline}</p>
+              </StaggerItem>
+            )}
+          </div>
+          {isOwner && (
+            <StaggerItem>
+              <Link href="/manage?tab=profile" className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <Pencil className="mr-2 h-3 w-3" /> Edit profile
+              </Link>
+            </StaggerItem>
+          )}
+        </Stagger>
+
+        {user.bio && (
+          <Reveal delay={0.3}>
+            <p className="mt-6 max-w-2xl text-muted-foreground leading-relaxed whitespace-pre-line">{user.bio}</p>
+          </Reveal>
         )}
       </section>
 
-      {user.bio && <p className="text-muted-foreground whitespace-pre-line">{user.bio}</p>}
-
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <Stagger className="grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border bg-border">
         {stats.map((s) => (
-          <Card key={s.label} className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold">{s.value}</div>
-              <p className="text-xs text-muted-foreground">{s.label}</p>
-            </CardContent>
-          </Card>
+          <StaggerItem key={s.label} className="bg-background p-5">
+            <CountUp value={s.value} className="block text-3xl font-semibold tabular-nums tracking-tight" />
+            <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">{s.label}</p>
+          </StaggerItem>
         ))}
-      </section>
+      </Stagger>
 
       <section className="grid gap-6 lg:grid-cols-3 items-start">
-        <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-3">
+        <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-3" delay={0.05}>
           <Timeline
             events={timeline}
             emptyMessage={isOwner ? "Add a milestone or finish a book in Manage to start your timeline." : `${name} hasn't added anything yet.`}
           />
         </Widget>
 
-        <Widget title="Books" icon={BookIcon} count={library.books.length}>
+        <Widget title="Books" icon={BookIcon} count={library.books.length} delay={0.15}>
           {readingNow.length > 0 && (
             <div className="space-y-2 mb-4">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reading now</p>
@@ -110,7 +131,7 @@ export default async function ProfilePage({ params }: Props) {
           />
         </Widget>
 
-        <Widget title="Concepts" icon={Compass} count={library.concepts.length}>
+        <Widget title="Concepts" icon={Compass} count={library.concepts.length} delay={0.25}>
           {library.concepts.length === 0 ? (
             <p className="text-sm text-muted-foreground">No concepts yet.</p>
           ) : (
@@ -124,7 +145,7 @@ export default async function ProfilePage({ params }: Props) {
                     <div className="flex flex-wrap gap-1.5">
                       {group.map((concept) => (
                         <Link key={concept.id} href={`/concepts/${concept.id}`} title={concept.shortDescription ?? undefined}>
-                          <Badge variant="outline" className={`hover:border-primary/50 ${statusColor[status] ?? defaultColor}`}>{concept.name}</Badge>
+                          <Badge variant="outline" className={`transition-transform hover:scale-105 ${statusColor[status] ?? defaultColor}`}>{concept.name}</Badge>
                         </Link>
                       ))}
                     </div>
@@ -135,10 +156,10 @@ export default async function ProfilePage({ params }: Props) {
           )}
         </Widget>
 
-        <Widget title="Projects" icon={Folder} count={library.projects.length}>
+        <Widget title="Projects" icon={Folder} count={library.projects.length} delay={0.35}>
           <ShowMore
             items={library.projects.map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`} className="block rounded-lg border p-3 hover:border-primary/50 transition-colors">
+              <Link key={project.id} href={`/projects/${project.id}`} className="block rounded-lg border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium text-sm truncate">{project.name}</span>
                   <Badge variant="outline" className={`capitalize text-[10px] shrink-0 ${statusColor[project.status] ?? defaultColor}`}>
@@ -165,23 +186,28 @@ export default async function ProfilePage({ params }: Props) {
 
 // Widgets
 
-function Widget({ title, icon: Icon, count, className, children }: {
+function Widget({ title, icon: Icon, count, className, delay, children }: {
   title: string;
   icon: LucideIcon;
   count?: number;
   className?: string;
+  delay?: number;
   children: ReactNode;
 }) {
   return (
-    <Card className={`shadow-sm ${className ?? ""}`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
-          <Icon className="h-4 w-4 text-primary" /> {title}
-        </CardTitle>
-        {count !== undefined && <span className="text-xs text-muted-foreground">{count}</span>}
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
+    <Reveal className={className} delay={delay}>
+      <Card className="shadow-none bg-card/50 transition-colors hover:border-foreground/15">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-sm font-medium flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
+            <Icon className="h-4 w-4 text-foreground" /> {title}
+          </CardTitle>
+          {count !== undefined && (
+            <span className="rounded-full border px-2 py-0.5 font-mono text-[11px] text-muted-foreground">{count}</span>
+          )}
+        </CardHeader>
+        <CardContent>{children}</CardContent>
+      </Card>
+    </Reveal>
   );
 }
 
@@ -210,7 +236,7 @@ type PublicBook = Awaited<ReturnType<typeof getPublicLibrary>>["books"][number];
 
 function BookRow({ book }: { book: PublicBook }) {
   return (
-    <Link href={`/books/${book.id}`} className="flex items-start justify-between gap-3 rounded-lg border p-3 hover:border-primary/50 transition-colors">
+    <Link href={`/books/${book.id}`} className="flex items-start justify-between gap-3 rounded-lg border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
       <div className="min-w-0">
         <p className="font-medium text-sm line-clamp-1">{book.title}</p>
         <p className="text-xs text-muted-foreground line-clamp-1">{book.authors}</p>

@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteMilestone } from "@/app/actions/mutations";
-import { formatEventDate } from "@/components/timeline";
+import { formatEventDate } from "@/lib/dates";
 import { toast } from "sonner";
 
 export function MilestonesSection({ milestones }: { milestones: any[] }) {

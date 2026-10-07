@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Book, Compass, Folder, Home, Search, Moon, Sun, Settings, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 
 import { UserMenu } from "./user-menu";
@@ -27,25 +28,34 @@ export function Navbar({ session, username }: { session: Session | null; usernam
       <div className="container mx-auto flex h-14 max-w-screen-2xl items-center px-4">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <Compass className="h-6 w-6 text-primary" />
+            <Compass className="h-6 w-6 text-primary transition-transform duration-500 hover:rotate-90" />
             <span className="font-bold sm:inline-block">Knowledge Tracker</span>
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="flex items-center gap-1 text-sm font-medium">
             {session?.user && [
               ...navItems,
               ...(username ? [{ href: `/u/${username}`, label: "Profile", icon: UserRound }] : []),
             ].map((item) => {
+              const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-2 transition-colors hover:text-foreground/80",
-                    pathname === item.href ? "text-foreground" : "text-foreground/60"
+                    "relative flex items-center gap-2 rounded-full px-3 py-1.5 transition-colors hover:text-foreground",
+                    isActive ? "text-foreground" : "text-foreground/60"
                   )}
                 >
+                  {/* The pill slides between links as you navigate. */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-active"
+                      className="absolute inset-0 -z-10 rounded-full bg-muted"
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
                   <item.icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <span className="hidden md:inline">{item.label}</span>
                 </Link>
               );
             })}

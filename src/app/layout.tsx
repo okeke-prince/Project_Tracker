@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { MotionProvider } from "@/components/motion";
 import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { auth } from "@/auth";
@@ -40,12 +41,14 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="relative flex min-h-screen flex-col">
-            <Navbar session={session} username={username} />
-            <main className="flex-1 container mx-auto px-4 py-8">
-              {children}
-            </main>
-          </div>
+          <MotionProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Navbar session={session} username={username} />
+              <main className="flex-1 container mx-auto px-4 py-8">
+                {children}
+              </main>
+            </div>
+          </MotionProvider>
           <Toaster />
         </ThemeProvider>
       </body>
