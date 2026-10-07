@@ -103,6 +103,15 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
     [colors.text],
   );
 
+  // Frame the whole map. The physics settles again whenever a node is clicked or dragged,
+  // so the automatic fit only happens the first time; after that it's empty-space clicks.
+  const fitted = useRef(false);
+  const zoomOut = () => fgRef.current?.zoomToFit(800, 60);
+  const clearSelection = () => {
+    setSelected(null);
+    zoomOut();
+  };
+
   const flyTo = (node: Node) => {
     if (node.x === undefined || node.y === undefined || node.z === undefined) return;
     const distance = 70;
@@ -152,9 +161,13 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
             setSelected(n);
             flyTo(n);
           }}
-          onBackgroundClick={() => setSelected(null)}
+          onBackgroundClick={clearSelection}
           cooldownTicks={120}
-          onEngineStop={() => fgRef.current?.zoomToFit(800, 60)}
+          onEngineStop={() => {
+            if (fitted.current) return;
+            fitted.current = true;
+            zoomOut();
+          }}
         />
       )}
 
@@ -172,7 +185,7 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
 
       {!compact && (
         <p className="pointer-events-none absolute bottom-4 left-4 hidden text-xs text-muted-foreground sm:block">
-          Drag to orbit · scroll to zoom · click a node to focus
+          Drag to orbit · scroll to zoom · click a node to focus, empty space to zoom out
         </p>
       )}
 
@@ -192,7 +205,7 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
                 <span className="h-2 w-2 rounded-full" style={{ background: colors[selected.type] }} />
                 {TYPE_LABEL[selected.type]} · {selected.status.replace(/-/g, " ")}
               </span>
-              <button onClick={() => setSelected(null)} aria-label="Close" className="text-muted-foreground hover:text-foreground">
+              <button onClick={clearSelection} aria-label="Close" className="text-muted-foreground hover:text-foreground">
                 <X className="h-4 w-4" />
               </button>
             </div>
