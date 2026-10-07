@@ -220,6 +220,7 @@ export function Landing({ featured, host }: { featured: FeaturedProfile[]; host:
         <nav className="flex gap-6">
           <Link href="/register" className="hover:text-foreground transition-colors">Sign up</Link>
           <Link href="/login" className="hover:text-foreground transition-colors">Sign in</Link>
+          <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
           <a href="https://github.com/okeke-prince" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">GitHub</a>
         </nav>
         <span className="font-mono text-xs">© {new Date().getFullYear()}</span>

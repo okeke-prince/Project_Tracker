@@ -95,7 +95,7 @@ function RegisterForm() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required minLength={6} />
+              <Input id="password" name="password" type="password" required minLength={8} placeholder="At least 8 characters" />
             </div>
             {state?.error && (
               <div className="text-sm text-destructive text-center">
@@ -103,6 +103,11 @@ function RegisterForm() {
               </div>
             )}
             <SubmitButton />
+            <p className="text-center text-xs text-muted-foreground">
+              Your profile will be public. See the{" "}
+              <Link href="/privacy" className="underline underline-offset-4 hover:text-foreground">privacy policy</Link>{" "}
+              for what others can see.
+            </p>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center border-t p-6">
