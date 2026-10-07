@@ -6,6 +6,7 @@ import { ProjectsSection } from "./projects-section";
 import { ConceptsSection } from "./concepts-section";
 import { MilestonesSection } from "./milestones-section";
 import { ProfileForm } from "@/components/forms/profile-form";
+import { DeleteAccount } from "@/components/forms/delete-account";
 import { desc, eq } from "drizzle-orm";
 
 import { requireUserId } from "@/lib/session";
@@ -79,8 +80,9 @@ export default async function ManagePage({ searchParams }: { searchParams: Promi
         <TabsContent value="milestones" className="mt-6">
           <MilestonesSection milestones={allMilestones} />
         </TabsContent>
-        <TabsContent value="profile" className="mt-6">
+        <TabsContent value="profile" className="mt-6 space-y-10">
           {profile && <ProfileForm profile={profile} />}
+          {profile?.username && <DeleteAccount username={profile.username} />}
         </TabsContent>
       </Tabs>
     </div>

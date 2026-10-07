@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/db";
 import { accounts, sessions, users, verificationTokens } from "@/db/schema";
@@ -8,6 +8,12 @@ import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { generateUsername } from "@/lib/username";
+import { clientIp, FIFTEEN_MINUTES, rateLimit } from "@/lib/rate-limit";
+
+/** Thrown when someone has tried too many passwords; the sign-in form shows its own message for it. */
+class TooManyAttempts extends CredentialsSignin {
+  code = "rate_limited";
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter(db, {
@@ -36,9 +42,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
+        // Slow down password guessing: 10 tries per account and 30 per address every 15 minutes.
+        const ip = clientIp(request.headers);
+        const email = typeof credentials?.email === "string" ? credentials.email.toLowerCase() : "";
+        if (!rateLimit(`login:${ip}`, 30, FIFTEEN_MINUTES) || !rateLimit(`login:${ip}:${email}`, 10, FIFTEEN_MINUTES)) {
+          throw new TooManyAttempts();
+        }
+
+        // Older accounts may have 6-character passwords, so sign-in only checks one is present.
         const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(6) })
+          .object({ email: z.string().email(), password: z.string().min(1) })
           .safeParse(credentials);
 
         if (parsedCredentials.success) {
