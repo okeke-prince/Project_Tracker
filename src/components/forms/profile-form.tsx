@@ -33,8 +33,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     }
   }, [state]);
 
+  // Base UI inputs warn if their defaultValue changes after mount, which happens when a save
+  // refreshes the page with new values. Keying on the saved values remounts them instead.
+  const savedKey = [profile.name, profile.username, profile.headline, profile.bio].join("\u0000");
+
   return (
-    <form action={formAction} className="space-y-6 max-w-xl">
+    <form key={savedKey} action={formAction} className="space-y-6 max-w-xl">
       <div className="flex items-center gap-5">
         <button
           type="button"
