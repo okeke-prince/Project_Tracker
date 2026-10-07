@@ -1,19 +1,25 @@
 import { db } from './index';
-import { books, concepts, projects, bookConcepts, conceptProjects } from './schema';
-import { sql } from 'drizzle-orm';
+import { books, concepts, projects, bookConcepts, conceptProjects, users } from './schema';
+import { sql, eq } from 'drizzle-orm';
 
 async function seed() {
   console.log('Seeding database...');
 
-  // Clear existing data
-  db.delete(bookConcepts).run();
-  db.delete(conceptProjects).run();
-  db.delete(books).run();
-  db.delete(concepts).run();
-  db.delete(projects).run();
+  // Sample data belongs to one account: SEED_EMAIL=you@example.com npx tsx src/db/seed.ts
+  const email = process.env.SEED_EMAIL;
+  if (!email) throw new Error('Set SEED_EMAIL to the account that should own the sample data.');
+  const user = db.select().from(users).where(eq(users.email, email)).get();
+  if (!user) throw new Error(`No user with email ${email}. Register first.`);
+  const userId = user.id;
+
+  // Clear that user's existing data (links cascade)
+  db.delete(books).where(eq(books.userId, userId)).run();
+  db.delete(concepts).where(eq(concepts.userId, userId)).run();
+  db.delete(projects).where(eq(projects.userId, userId)).run();
 
   // Seed Concepts
   const ddd = db.insert(concepts).values({
+    userId,
     name: 'Domain-Driven Design',
     slug: 'domain-driven-design',
     shortDescription: 'An approach to software development that centers the development on programming a domain model that has a rich understanding of the processes and rules of a domain.',
@@ -22,6 +28,7 @@ async function seed() {
   }).returning().get();
 
   const cqrs = db.insert(concepts).values({
+    userId,
     name: 'CQRS',
     slug: 'cqrs',
     shortDescription: 'Command Query Responsibility Segregation. Separates read and update operations for a data store.',
@@ -30,6 +37,7 @@ async function seed() {
   }).returning().get();
 
   const eventSourcing = db.insert(concepts).values({
+    userId,
     name: 'Event Sourcing',
     slug: 'event-sourcing',
     shortDescription: 'Capture all changes to an application state as a sequence of events.',
@@ -38,6 +46,7 @@ async function seed() {
   }).returning().get();
 
   const microservices = db.insert(concepts).values({
+    userId,
     name: 'Microservices',
     slug: 'microservices',
     shortDescription: 'An architectural style that structures an application as a collection of loosely coupled services.',
@@ -47,6 +56,7 @@ async function seed() {
 
   // Seed Books
   const dddBook = db.insert(books).values({
+    userId,
     title: 'Domain-Driven Design: Tackling Complexity in the Heart of Software',
     authors: 'Eric Evans',
     year: 2003,
@@ -56,6 +66,7 @@ async function seed() {
   }).returning().get();
 
   const dataIntensive = db.insert(books).values({
+    userId,
     title: 'Designing Data-Intensive Applications',
     authors: 'Martin Kleppmann',
     year: 2017,
@@ -65,6 +76,7 @@ async function seed() {
   }).returning().get();
 
   const cleanArch = db.insert(books).values({
+    userId,
     title: 'Clean Architecture',
     authors: 'Robert C. Martin',
     year: 2017,
@@ -74,6 +86,7 @@ async function seed() {
   }).returning().get();
 
   const buildingMicroservices = db.insert(books).values({
+    userId,
     title: 'Building Microservices',
     authors: 'Sam Newman',
     year: 2021,
@@ -83,6 +96,7 @@ async function seed() {
 
   // Seed Projects
   const orderSystem = db.insert(projects).values({
+    userId,
     name: 'Distributed Order Management System',
     description: 'A mock project to implement saga patterns and event sourcing.',
     status: 'completed',
@@ -91,6 +105,7 @@ async function seed() {
   }).returning().get();
 
   const personalBlog = db.insert(projects).values({
+    userId,
     name: 'Personal Dev Blog',
     description: 'Static site using Next.js and MDX.',
     status: 'in-progress',

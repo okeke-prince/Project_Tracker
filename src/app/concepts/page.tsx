@@ -4,9 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Compass } from "lucide-react";
+import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/session";
 
 export default async function ConceptsPage() {
-  const allConcepts = await db.select().from(concepts);
+  const userId = await requireUserId();
+  const allConcepts = await db.select().from(concepts).where(eq(concepts.userId, userId));
 
   const getStatusColor = (status: string) => {
     switch(status) {

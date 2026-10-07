@@ -93,12 +93,18 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="finishedAt">Finished on</Label>
+        <Input id="finishedAt" name="finishedAt" type="date" defaultValue={book?.finishedAt ?? ""} />
+        <p className="text-xs text-muted-foreground">Shown on your timeline for finished books. Defaults to the day you mark it finished.</p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="tags">Tags (comma separated)</Label>
         <Input id="tags" name="tags" defaultValue={book?.tags ? JSON.parse(book.tags).join(', ') : ''} placeholder="architecture, clean-code" />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Markdown)</Label>
+        <Label htmlFor="notes">Private notes (Markdown)</Label>
         <Textarea id="notes" name="notes" rows={5} defaultValue={book?.notes} className="font-mono text-sm" />
       </div>
 

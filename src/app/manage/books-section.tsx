@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteBook } from "@/app/actions/mutations";
 import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; // need to install this
 
 export function BooksSection({ books, concepts, projects }: { books: any[], concepts: any[], projects: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -87,7 +86,6 @@ export function BooksSection({ books, concepts, projects }: { books: any[], conc
                     </SheetContent>
                   </Sheet>
                   
-                  {/* I need to make sure AlertDialog is installed, I will install it in the background if needed, but for now I'll use native confirm if I can't install. Actually I'll just use a button with confirm for speed. */}
                   <Button variant="outline" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => {
                     if (window.confirm("Are you sure you want to delete this book?")) {
                       handleDelete(book.id);

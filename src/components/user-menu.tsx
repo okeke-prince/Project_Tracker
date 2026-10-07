@@ -4,17 +4,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { handleSignOut } from "@/app/actions/auth";
-import { LogOut, User } from "lucide-react";
+import { LogOut, Settings, UserRound } from "lucide-react";
 import type { Session } from "next-auth";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function UserMenu({ session }: { session: Session | null }) {
+export function UserMenu({ session, username }: { session: Session | null; username?: string | null }) {
   if (!session?.user) {
     return (
-      <Link href="/login" className={cn(buttonVariants({ variant: "default", size: "sm" }))}>
-        Sign in
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link href="/login" className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}>
+          Sign in
+        </Link>
+        <Link href="/register" className={cn(buttonVariants({ variant: "default", size: "sm" }))}>
+          Sign up
+        </Link>
+      </div>
     );
   }
 
@@ -31,7 +36,7 @@ export function UserMenu({ session }: { session: Session | null }) {
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
+      <DropdownMenuContent className="w-56" align="end">
         <div className="px-2 py-1.5 text-sm font-normal">
           <div className="flex flex-col space-y-1">
             <p className="font-medium leading-none">{user.name}</p>
@@ -41,18 +46,20 @@ export function UserMenu({ session }: { session: Session | null }) {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <a href="/manage" className="cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
-            <span>Manage Knowledge</span>
-          </a>
+        {username && (
+          <DropdownMenuItem render={<a href={`/u/${username}`} className="cursor-pointer" />}>
+            <UserRound className="mr-2 h-4 w-4" />
+            <span>Your public profile</span>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem render={<a href="/manage" className="cursor-pointer" />}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Manage</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <button form="logout-form" type="submit" className="w-full cursor-pointer text-destructive focus:text-destructive flex items-center px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
-          </button>
+        <DropdownMenuItem variant="destructive" render={<button form="logout-form" type="submit" className="w-full cursor-pointer" />}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
         </DropdownMenuItem>
         <form id="logout-form" action={handleSignOut} className="hidden" />
       </DropdownMenuContent>

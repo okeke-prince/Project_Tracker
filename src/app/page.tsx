@@ -1,4 +1,6 @@
-import { getDashboardMetrics, getInProgressItems, getRecentActivity, getMasterySnapshot, getRecentlyMastered } from "@/db/queries";
+import { getDashboardMetrics, getInProgressItems, getMasterySnapshot, getRecentlyMastered, getTimeline, getUsername } from "@/db/queries";
+import { Timeline } from "@/components/timeline";
+import { Landing } from "@/components/landing";
 import { Book, Compass, Folder, ChevronRight, CheckCircle2, ArrowRight, BookOpen, PenTool } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,11 +11,16 @@ import { auth } from "@/auth";
 
 export default async function Dashboard() {
   const session = await auth();
-  const metrics = await getDashboardMetrics();
-  const inProgress = await getInProgressItems();
-  const recentActivity = await getRecentActivity();
-  const snapshot = await getMasterySnapshot();
-  const recentlyMastered = await getRecentlyMastered();
+  const userId = session?.user?.id;
+  if (!userId) return <Landing />;
+
+  const metrics = await getDashboardMetrics(userId);
+  const inProgress = await getInProgressItems(userId);
+  const timeline = (await getTimeline(userId)).slice(0, 5);
+  const username = await getUsername(userId);
+  const snapshot = await getMasterySnapshot(userId);
+  const recentlyMastered = await getRecentlyMastered(userId);
+  const firstName = session.user?.name?.split(" ")[0];
 
   const overallProgress = metrics.totalConcepts > 0 
     ? Math.round((metrics.masteredOrAppliedConcepts / metrics.totalConcepts) * 100) 
@@ -30,7 +37,7 @@ export default async function Dashboard() {
       {/* Top section - Hero & Metrics */}
       <section className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{greeting}, Udo.</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{greeting}{firstName ? `, ${firstName}` : ""}.</h1>
           <p className="text-muted-foreground mt-1">{today}</p>
         </div>
 
@@ -125,41 +132,20 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        {/* Right Column - Recent Activity */}
+        {/* Right Column - Timeline preview */}
         <div className="md:col-span-3 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold tracking-tight">Recent Activity</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Your Timeline</h2>
+            {username && (
+              <Link href={`/u/${username}`} className="text-sm text-primary flex items-center hover:underline">
+                Public profile <ArrowRight className="ml-1 w-3 h-3" />
+              </Link>
+            )}
           </div>
-          <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-                {recentActivity.map((activity, idx) => (
-                  <div key={`${activity.type}-${activity.id}-${idx}`} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border bg-background shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
-                      {activity.status === 'mastered' || activity.status === 'finished' || activity.status === 'completed' 
-                        ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> 
-                        : (activity.type === 'book' ? <Book className="h-4 w-4 text-muted-foreground" /> : activity.type === 'concept' ? <Compass className="h-4 w-4 text-muted-foreground" /> : <Folder className="h-4 w-4 text-muted-foreground" />)
-                      }
-                    </div>
-                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-xl border bg-card shadow-sm transition-all hover:shadow-md">
-                      <div className="flex items-center justify-between space-x-2 mb-1">
-                        <span className="font-bold text-sm text-muted-foreground capitalize">{activity.type}</span>
-                        <time className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-                          {new Date(activity.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </time>
-                      </div>
-                      <Link href={`/${activity.type}s/${activity.id}`} className="font-semibold text-sm hover:text-primary transition-colors line-clamp-2">
-                        {activity.title}
-                      </Link>
-                      <Badge variant="outline" className={`mt-2 text-[10px] uppercase tracking-wider ${getStatusColor(activity.status)}`}>
-                        {activity.status.replace('-', ' ')}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <Timeline
+            events={timeline}
+            emptyMessage="Add milestones like graduating or getting certified in Manage, and finished books and projects will show up here too."
+          />
         </div>
       </section>
 

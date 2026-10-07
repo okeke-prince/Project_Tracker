@@ -6,6 +6,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
+import { normalizeUsername, validateUsername, isUsernameTaken } from "@/lib/username";
 
 export async function authenticate(
   prevState: string | undefined,
@@ -31,9 +32,19 @@ export async function register(prevState: any, formData: FormData) {
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const username = normalizeUsername((formData.get('username') as string) || '');
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !username) {
       return { success: false, error: "Missing required fields" };
+    }
+
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      return { success: false, error: usernameError };
+    }
+
+    if (await isUsernameTaken(username)) {
+      return { success: false, error: "That username is already taken" };
     }
 
     if (password.length < 6) {
@@ -54,13 +65,27 @@ export async function register(prevState: any, formData: FormData) {
     await db.insert(users).values({
       name,
       email,
+      username,
       password: hashedPassword,
     });
-
-    return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to register" };
   }
+
+  // Sign the new user straight in. signIn redirects by throwing, so it sits outside the try.
+  try {
+    await signIn('credentials', {
+      email: formData.get('email'),
+      password: formData.get('password'),
+      redirectTo: '/manage',
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { success: true };
+    }
+    throw error;
+  }
+  return { success: true };
 }
 
 export async function handleSignOut() {
@@ -68,5 +93,5 @@ export async function handleSignOut() {
 }
 
 export async function signInWithGoogle() {
-  await signIn('google', { redirectTo: '/dashboard' });
+  await signIn('google', { redirectTo: '/' });
 }

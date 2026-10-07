@@ -59,6 +59,20 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
         </Select>
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="startedAt">Started on</Label>
+          <Input id="startedAt" name="startedAt" type="date" defaultValue={project?.createdAt?.slice(0, 10)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="completedAt">Completed on</Label>
+          <Input id="completedAt" name="completedAt" type="date" defaultValue={project?.completedAt ?? ""} />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground -mt-4">
+        These dates place the project on your timeline. GitHub projects default to the repo&apos;s creation date, and the completion date defaults to the day you mark it completed.
+      </p>
+
       <div className="space-y-2">
         <Label htmlFor="repoUrl">Repository URL</Label>
         <Input id="repoUrl" name="repoUrl" type="url" defaultValue={project?.repoUrl} placeholder="https://github.com/..." />

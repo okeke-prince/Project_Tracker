@@ -7,6 +7,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { generateUsername } from "@/lib/username";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter(db, {
@@ -16,6 +17,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     verificationTokensTable: verificationTokens,
   }),
   session: { strategy: "jwt" },
+  events: {
+    // Google sign-ups skip the register form, so give them a username here.
+    async createUser({ user }) {
+      if (!user.id) return;
+      const existing = await db.query.users.findFirst({ where: eq(users.id, user.id) });
+      if (existing?.username) return;
+      const username = await generateUsername(user.email || user.name || "user");
+      await db.update(users).set({ username }).where(eq(users.id, user.id));
+    },
+  },
   ...authConfig,
   providers: [
     ...authConfig.providers.filter((p: any) => p.id !== "credentials"),

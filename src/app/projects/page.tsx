@@ -4,9 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Folder } from "lucide-react";
+import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/session";
 
 export default async function ProjectsPage() {
-  const allProjects = await db.select().from(projects);
+  const userId = await requireUserId();
+  const allProjects = await db.select().from(projects).where(eq(projects.userId, userId));
 
   const getStatusColor = (status: string) => {
     switch(status) {

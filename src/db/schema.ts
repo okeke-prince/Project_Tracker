@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { sql, relations } from 'drizzle-orm';
 
 const timestamps = {
@@ -8,6 +8,7 @@ const timestamps = {
 
 export const books = sqliteTable('books', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   authors: text('authors').notNull(),
   year: integer('year'),
@@ -17,47 +18,71 @@ export const books = sqliteTable('books', {
   coverUrl: text('cover_url'),
   fileUrl: text('file_url'),
   lastLocation: text('last_location'),
-  notes: text('notes'),
+  finishedAt: text('finished_at'), // YYYY-MM-DD, shown on the public timeline
+  notes: text('notes'), // private to the owner
   tags: text('tags'),
   ...timestamps,
 });
 
-export const booksRelations = relations(books, ({ many }) => ({
+export const booksRelations = relations(books, ({ one, many }) => ({
+  user: one(users, { fields: [books.userId], references: [users.id] }),
   bookConcepts: many(bookConcepts),
   bookProjects: many(bookProjects),
 }));
 
 export const concepts = sqliteTable('concepts', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
-  slug: text('slug').notNull().unique(),
+  slug: text('slug').notNull(),
   shortDescription: text('short_description'),
   status: text('status', { enum: ['studied', 'applied', 'mastered'] }).notNull().default('studied'),
-  notes: text('notes'),
+  notes: text('notes'), // private to the owner
   tags: text('tags'),
   ...timestamps,
-});
+}, (t) => ({
+  userSlug: uniqueIndex('concepts_user_slug_unique').on(t.userId, t.slug),
+}));
 
-export const conceptsRelations = relations(concepts, ({ many }) => ({
+export const conceptsRelations = relations(concepts, ({ one, many }) => ({
+  user: one(users, { fields: [concepts.userId], references: [users.id] }),
   bookConcepts: many(bookConcepts),
   conceptProjects: many(conceptProjects),
 }));
 
 export const projects = sqliteTable('projects', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   description: text('description'),
   repoUrl: text('repo_url'),
   status: text('status', { enum: ['idea', 'in-progress', 'completed', 'archived'] }).notNull().default('idea'),
   techStack: text('tech_stack'),
   lessonsLearned: text('lessons_learned'),
+  completedAt: text('completed_at'), // YYYY-MM-DD, shown on the public timeline
   tags: text('tags'),
   ...timestamps,
 });
 
-export const projectsRelations = relations(projects, ({ many }) => ({
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  user: one(users, { fields: [projects.userId], references: [users.id] }),
   conceptProjects: many(conceptProjects),
   bookProjects: many(bookProjects),
+}));
+
+export const milestones = sqliteTable('milestones', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  type: text('type', { enum: ['education', 'certification', 'work', 'award', 'other'] }).notNull().default('other'),
+  date: text('date').notNull(), // YYYY-MM-DD
+  description: text('description'),
+  link: text('link'),
+  ...timestamps,
+});
+
+export const milestonesRelations = relations(milestones, ({ one }) => ({
+  user: one(users, { fields: [milestones.userId], references: [users.id] }),
 }));
 
 export const bookConcepts = sqliteTable('book_concepts', {
@@ -125,6 +150,9 @@ export const users = sqliteTable("user", {
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
   password: text("password"),
+  username: text("username").unique(), // public profile URL: /u/<username>
+  headline: text("headline"),
+  bio: text("bio"),
 });
 
 export const accounts = sqliteTable(

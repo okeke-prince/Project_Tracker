@@ -1,9 +1,10 @@
 import { db } from "@/db";
 import { books } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { auth } from "@/auth";
+import { localFilePath } from "@/lib/storage";
 import fs from "fs/promises";
 import path from "path";
 
@@ -12,12 +13,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session) {
+  const userId = session?.user?.id;
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const result = await db.select().from(books).where(eq(books.id, id));
+  // Book files are only ever served to their owner. Anyone else gets a 404.
+  const result = await db.select().from(books).where(and(eq(books.id, id), eq(books.userId, userId)));
   const book = result[0];
 
   if (!book || !book.fileUrl) {
@@ -87,7 +90,7 @@ export async function GET(
       }
     } else {
       // Local file
-      const localPath = path.join(process.cwd(), "public", fileUrl);
+      const localPath = localFilePath(fileUrl);
       fileBuffer = await fs.readFile(localPath);
     }
 

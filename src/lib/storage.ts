@@ -23,6 +23,19 @@ function isS3Configured() {
   );
 }
 
+/**
+ * Where a locally stored book file lives on disk. New uploads go to ./storage, outside
+ * public/, so the only way to fetch them is the owner-checked /api/file route.
+ * Older uploads under public/uploads are still found.
+ */
+export function localFilePath(fileUrl: string): string {
+  if (fileUrl.startsWith("local://")) {
+    const key = fileUrl.replace("local://", "");
+    return path.join(process.cwd(), "storage", path.dirname(key), path.basename(key));
+  }
+  return path.join(process.cwd(), "public", fileUrl);
+}
+
 export async function uploadBookFile(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -45,12 +58,12 @@ export async function uploadBookFile(file: File): Promise<string> {
     // Store the S3 key in the DB (not a public URL, since the bucket is private)
     return `s3://books/${uniqueFilename}`;
   } else {
-    // Local Fallback Strategy
-    const publicUploadDir = path.join(process.cwd(), "public", "uploads", "books");
-    await fs.mkdir(publicUploadDir, { recursive: true });
-    const filePath = path.join(publicUploadDir, uniqueFilename);
+    // Local Fallback Strategy (private folder, served only through /api/file)
+    const fileUrl = `local://books/${uniqueFilename}`;
+    const filePath = localFilePath(fileUrl);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, buffer);
-    return `/uploads/books/${uniqueFilename}`;
+    return fileUrl;
   }
 }
 
@@ -76,8 +89,8 @@ export async function deleteBookFile(fileUrl: string): Promise<void> {
     });
     await getS3Client().send(command);
   } else {
-    // Local file — derive absolute path from relative URL
-    const localPath = path.join(process.cwd(), "public", fileUrl);
+    // Local file
+    const localPath = localFilePath(fileUrl);
     await fs.unlink(localPath).catch(() => {
       // Ignore if file not found
     });

@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Compass, Book, ArrowLeft, GitFork } from "lucide-react";
+import { getCurrentUserId } from "@/lib/session";
+import { getOwner } from "@/db/queries";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,6 +17,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!project) {
     notFound();
   }
+
+  const isOwner = (await getCurrentUserId()) === project.userId;
+  const owner = await getOwner(project.userId);
 
   // Fetch related concepts
   const relatedConceptsLinks = await db.select().from(conceptProjects).where(eq(conceptProjects.projectId, project.id));
@@ -39,9 +44,9 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Link href="/projects" className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
+      <Link href={isOwner ? "/projects" : `/u/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Projects
+        {isOwner ? "Back to Projects" : `Back to ${owner?.name || owner?.username}'s profile`}
       </Link>
 
       <div className="space-y-4">

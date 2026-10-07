@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Book, Compass, Folder, Home, Search, Moon, Sun, Settings } from "lucide-react";
+import { Book, Compass, Folder, Home, Search, Moon, Sun, Settings, UserRound } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 
@@ -18,7 +18,7 @@ const navItems = [
   { href: "/manage", label: "Manage", icon: Settings },
 ];
 
-export function Navbar({ session }: { session: Session | null }) {
+export function Navbar({ session, username }: { session: Session | null; username?: string | null }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
 
@@ -31,10 +31,10 @@ export function Navbar({ session }: { session: Session | null }) {
             <span className="font-bold sm:inline-block">Knowledge Tracker</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            {navItems.map((item) => {
-              // Hide Manage from non-authenticated users
-              if (item.href === "/manage" && !session?.user) return null;
-              
+            {session?.user && [
+              ...navItems,
+              ...(username ? [{ href: `/u/${username}`, label: "Profile", icon: UserRound }] : []),
+            ].map((item) => {
               return (
                 <Link
                   key={item.href}
@@ -52,7 +52,7 @@ export function Navbar({ session }: { session: Session | null }) {
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
+          <div className={cn("w-full flex-1 md:w-auto md:flex-none", !session?.user && "invisible")}>
             <Button variant="outline" className="w-full justify-start text-sm text-muted-foreground sm:pr-12 md:w-40 lg:w-64" onClick={() => alert('Search not implemented yet')}>
               <Search className="mr-2 h-4 w-4" />
               Search...
@@ -68,7 +68,7 @@ export function Navbar({ session }: { session: Session | null }) {
             <span className="sr-only">Toggle theme</span>
           </Button>
           
-          <UserMenu session={session} />
+          <UserMenu session={session} username={username} />
         </div>
       </div>
     </header>

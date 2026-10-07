@@ -67,7 +67,7 @@ export function ConceptForm({ concept, onSuccess }: ConceptFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Markdown)</Label>
+        <Label htmlFor="notes">Private notes (Markdown)</Label>
         <Textarea id="notes" name="notes" rows={5} defaultValue={concept?.notes} className="font-mono text-sm" />
       </div>
 

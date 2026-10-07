@@ -25,12 +25,8 @@ export default function RegisterPage() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state?.success && formRef.current) {
-      // Auto-login after registration
-      const formData = new FormData(formRef.current);
-      // Let's redirect to login page instead for simplicity, or we can trigger authenticate here.
-      // But we can't easily call standard server actions outside of forms in React 19 without transition.
-      // Easiest is to redirect the user to login manually.
+    // Registration signs the user in and redirects on the server; this is the fallback.
+    if (state?.success) {
       window.location.href = '/login';
     }
   }, [state]);
@@ -44,7 +40,7 @@ export default function RegisterPage() {
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">Create an account</CardTitle>
           <CardDescription>
-            Enter your details below to create your account
+            Create your profile and start building your timeline
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,6 +54,21 @@ export default function RegisterPage() {
                 placeholder="John Doe"
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="johndoe"
+                required
+                minLength={3}
+                maxLength={30}
+                pattern="[a-zA-Z0-9-]+"
+                autoComplete="username"
+              />
+              <p className="text-xs text-muted-foreground">Your public profile will live at /u/your-username.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

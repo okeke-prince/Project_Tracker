@@ -5,11 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { Book as BookIcon } from "lucide-react";
 
-import { auth } from "@/auth";
+import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/session";
 
 export default async function BooksPage() {
-  const session = await auth();
-  const allBooks = await db.select().from(books);
+  const userId = await requireUserId();
+  const allBooks = await db.select().from(books).where(eq(books.userId, userId));
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -32,7 +33,7 @@ export default async function BooksPage() {
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {allBooks.map((book) => {
           const hasFile = !!book.fileUrl;
-          const href = hasFile && session ? `/read/${book.id}` : `/books/${book.id}`;
+          const href = hasFile ? `/read/${book.id}` : `/books/${book.id}`;
           return (
           <Link key={book.id} href={href}>
             <Card className="h-full hover:border-primary/50 transition-colors flex flex-col cursor-pointer">

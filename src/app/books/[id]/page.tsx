@@ -5,10 +5,11 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Compass, Folder, ArrowLeft, Star, FileText } from "lucide-react";
-import { auth } from "@/auth";
+import { getCurrentUserId } from "@/lib/session";
+import { getOwner } from "@/db/queries";
 
 export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await auth();
+  const viewerId = await getCurrentUserId();
   const { id } = await params;
   const result = await db.select().from(books).where(eq(books.id, id));
   const book = result[0];
@@ -16,6 +17,9 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   if (!book) {
     notFound();
   }
+
+  const isOwner = viewerId === book.userId;
+  const owner = await getOwner(book.userId);
 
   // Fetch related concepts
   const conceptLinks = await db.select().from(bookConcepts).where(eq(bookConcepts.bookId, book.id));
@@ -46,9 +50,9 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Link href="/books" className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
+      <Link href={isOwner ? "/books" : `/u/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Books
+        {isOwner ? "Back to Books" : `Back to ${owner?.name || owner?.username}'s profile`}
       </Link>
 
       <div className="space-y-4">
@@ -71,8 +75,15 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         </div>
         <h1 className="text-4xl font-bold tracking-tight">{book.title}</h1>
         <p className="text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
+        {!isOwner && owner?.username && (
+          <p className="text-sm text-muted-foreground">
+            On <Link href={`/u/${owner.username}`} className="text-primary hover:underline">{owner.name || owner.username}</Link>&apos;s shelf
+            {book.finishedAt && <> · finished {book.finishedAt}</>}
+          </p>
+        )}
         
-        {session && book.fileUrl && (
+        {/* Reading and downloading are for the owner only. */}
+        {isOwner && book.fileUrl && (
           <div className="pt-2">
             {book.fileUrl.includes('.epub') ? (
               <Link 
@@ -95,13 +106,16 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         )}
       </div>
 
-      <div className="prose dark:prose-invert max-w-none">
-        {book.notes ? (
-          <div>{book.notes}</div>
-        ) : (
-          <p className="text-muted-foreground italic">No notes added yet.</p>
-        )}
-      </div>
+      {/* Notes are private to the owner. */}
+      {isOwner && (
+        <div className="prose dark:prose-invert max-w-none">
+          {book.notes ? (
+            <div>{book.notes}</div>
+          ) : (
+            <p className="text-muted-foreground italic">No notes added yet.</p>
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-8 pt-8 border-t">
         <div className="space-y-4">
