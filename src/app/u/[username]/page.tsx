@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/motion";
+import { RepoLink } from "@/components/repo-link";
 import { buttonVariants } from "@/components/ui/button";
 import { Book as BookIcon, Compass, Folder, Milestone, Pencil, Star, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -158,9 +159,10 @@ export default async function ProfilePage({ params }: Props) {
         <Widget title="Projects" icon={Folder} count={library.projects.length} delay={0.35}>
           <ShowMore
             items={library.projects.map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`} className="block rounded-lg border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
+              <div key={project.id} className="relative rounded-lg border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-sm truncate">{project.name}</span>
+                  {/* Stretched link: the whole card opens the project, the repo link sits above it. */}
+                  <Link href={`/projects/${project.id}`} className="font-medium text-sm truncate after:absolute after:inset-0">{project.name}</Link>
                   <Badge variant="outline" className={`capitalize text-[10px] shrink-0 ${statusColor[project.status] ?? defaultColor}`}>
                     {project.status.replace(/-/g, " ")}
                   </Badge>
@@ -173,7 +175,8 @@ export default async function ProfilePage({ params }: Props) {
                     ))}
                   </div>
                 )}
-              </Link>
+                {project.repoUrl && <RepoLink url={project.repoUrl} className="mt-2" />}
+              </div>
             ))}
             empty="No projects yet."
           />

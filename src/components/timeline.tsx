@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { BadgeCheck, BookOpen, Briefcase, CheckCircle2, ExternalLink, Flag, GraduationCap, Rocket, Trophy } from "lucide-react";
 import type { TimelineEvent } from "@/db/queries";
 import { formatEventDate } from "@/lib/dates";
+import { RepoLink } from "@/components/repo-link";
 
 const MILESTONE_STYLES = {
   education: { icon: GraduationCap, label: "Education" },
@@ -119,6 +120,7 @@ export function Timeline({ events, emptyMessage }: { events: TimelineEvent[]; em
                     ))}
                   </div>
                 )}
+                {event.repoUrl && <RepoLink url={event.repoUrl} className="mt-3" />}
                 {event.link && (
                   <a href={event.link} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center text-xs font-medium underline-offset-4 hover:underline">
                     View credential <ExternalLink className="ml-1 h-3 w-3" />

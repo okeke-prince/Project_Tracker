@@ -69,6 +69,7 @@ export type TimelineEvent = {
   description?: string | null;
   href?: string;
   link?: string | null;
+  repoUrl?: string | null;
   milestoneType?: typeof milestones.$inferSelect['type'];
   concepts?: { id: string; name: string }[];
 };
@@ -127,6 +128,7 @@ export async function getTimeline(userId: string): Promise<TimelineEvent[]> {
       title: `Started ${p.name}`,
       description: p.description,
       href: `/projects/${p.id}`,
+      repoUrl: p.repoUrl,
       concepts: p.status === 'completed' ? undefined : applied,
     });
     if (p.status === 'completed') {
@@ -137,6 +139,7 @@ export async function getTimeline(userId: string): Promise<TimelineEvent[]> {
         title: `Shipped ${p.name}`,
         description: p.description,
         href: `/projects/${p.id}`,
+        repoUrl: p.repoUrl,
         concepts: applied,
       });
     }

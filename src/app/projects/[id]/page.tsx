@@ -4,7 +4,8 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Compass, Book, ArrowLeft, GitFork } from "lucide-react";
+import { Compass, Book, ArrowLeft } from "lucide-react";
+import { RepoLink } from "@/components/repo-link";
 import { getCurrentUserId } from "@/lib/session";
 import { getOwner } from "@/db/queries";
 
@@ -59,14 +60,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
           </div>
-          {project.repoUrl && (
-            <a href={project.repoUrl} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground">
-              <GitFork className="h-5 w-5" />
-            </a>
-          )}
         </div>
         <h1 className="text-4xl font-bold tracking-tight">{project.name}</h1>
         <p className="text-xl text-muted-foreground">{project.description}</p>
+        {project.repoUrl && <RepoLink url={project.repoUrl} variant="button" />}
       </div>
       
       {project.techStack && (
