@@ -1,8 +1,8 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import fs from "fs/promises";
-import path from "path";
-import crypto from "crypto";
+import fs from "node:fs/promises";
+import path from "node:path";
+import crypto from "node:crypto";
 
 function getS3Client() {
   return new S3Client({

@@ -6,7 +6,7 @@
 //
 // It copies sqlite.db to sqlite.db.before-multi-user first.
 import Database from 'better-sqlite3';
-import fs from 'fs';
+import fs from 'node:fs';
 
 const DB_PATH = 'sqlite.db';
 const db = new Database(DB_PATH);
