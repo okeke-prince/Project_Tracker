@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { MotionProvider } from "@/components/motion";
 import { Navbar } from "@/components/navbar";
+import { BackgroundShapes } from "@/components/background-shapes";
 import { Toaster } from "@/components/ui/sonner";
 import { auth } from "@/auth";
 import { getNavUser } from "@/db/queries";
+import { isAdminEmail } from "@/lib/admin";
 
-const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
-// Display serif, used sparingly in italics for accent words in headings.
-const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-instrument-serif" });
+// One family for everything. Its optical-size axis keeps body text open and readable, and
+// its width axis gives the narrow, heavy display cut used for names and years (.font-display).
+const bricolage = Bricolage_Grotesque({ subsets: ["latin"], axes: ["opsz", "wdth"], variable: "--font-bricolage" });
 
 // Link previews need absolute URLs. Set NEXT_PUBLIC_SITE_URL to the live address when deploying.
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.AUTH_URL || "http://localhost:3000";
@@ -30,7 +31,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#09090b",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbfcfd" },
+    { media: "(prefers-color-scheme: dark)", color: "#141824" },
+  ],
 };
 
 export default async function RootLayout({
@@ -39,16 +43,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  const navUser = session?.user?.id ? await getNavUser(session.user.id) : null;
+  const found = session?.user?.id ? await getNavUser(session.user.id) : null;
+  // A suspended account is shown as signed out.
+  const navUser = found && !found.suspendedAt ? found : null;
   const username = navUser?.username ?? null;
   // Prefer the DB's name and picture over the copy baked into the session token.
   const navSession = session?.user && navUser
     ? { ...session, user: { ...session.user, image: navUser.image, name: navUser.name } }
-    : session;
+    : found ? null : session;
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} min-h-screen overflow-x-clip bg-background font-sans antialiased`}>
+      <body className={`${bricolage.variable} min-h-screen overflow-x-clip bg-background font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -57,10 +63,8 @@ export default async function RootLayout({
         >
           <MotionProvider>
             <div className="relative isolate flex min-h-screen flex-col">
-              {/* Site-wide textures: a dot grid that fades out down the page, and a light film grain. */}
-              <div aria-hidden className="bg-dot-grid pointer-events-none absolute inset-x-0 top-0 -z-10 h-[720px]" />
-              <div aria-hidden className="bg-grain pointer-events-none fixed inset-0 z-[100]" />
-              <Navbar session={navSession} username={username} />
+              <BackgroundShapes />
+              <Navbar session={navSession} username={username} isAdmin={isAdminEmail(navUser?.email)} />
               <main className="flex-1 container mx-auto w-full min-w-0 px-4 py-6 sm:py-8">
                 {children}
               </main>

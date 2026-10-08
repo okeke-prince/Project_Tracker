@@ -31,11 +31,11 @@ export function MilestonesSection({ milestones }: { milestones: any[] }) {
         <p className="text-sm text-muted-foreground">Graduations, certifications, new jobs and other moments for your timeline.</p>
         <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
           <SheetTrigger className={buttonVariants({ variant: "default" })}>
-            <Plus className="mr-2 h-4 w-4" /> Add Milestone
+            <Plus className="mr-2 h-4 w-4" /> Add milestone
           </SheetTrigger>
           <SheetContent className="sm:max-w-[540px] overflow-y-auto">
             <SheetHeader className="mb-6">
-              <SheetTitle>Add New Milestone</SheetTitle>
+              <SheetTitle>Add a milestone</SheetTitle>
             </SheetHeader>
             <MilestoneForm onSuccess={() => setIsAddOpen(false)} />
           </SheetContent>
@@ -69,7 +69,7 @@ export function MilestonesSection({ milestones }: { milestones: any[] }) {
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-[540px] overflow-y-auto">
                       <SheetHeader className="mb-6">
-                        <SheetTitle>Edit Milestone</SheetTitle>
+                        <SheetTitle>Edit milestone</SheetTitle>
                       </SheetHeader>
                       <MilestoneForm milestone={milestone} onSuccess={() => setEditingMilestone(null)} />
                     </SheetContent>

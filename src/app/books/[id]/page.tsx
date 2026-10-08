@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Compass, Folder, ArrowLeft, Star, FileText } from "lucide-react";
 import { getCurrentUserId } from "@/lib/session";
 import { getOwner } from "@/db/queries";
+import { statusLabel } from "@/lib/status";
 
 export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const viewerId = await getCurrentUserId();
@@ -20,6 +21,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
   const isOwner = viewerId === book.userId;
   const owner = await getOwner(book.userId);
+  if (owner?.suspendedAt) notFound(); // suspended profiles are hidden everywhere
 
   // Fetch related concepts
   const conceptLinks = await db.select().from(bookConcepts).where(eq(bookConcepts.bookId, book.id));
@@ -57,8 +59,8 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <Badge variant="outline" className={`capitalize text-sm px-3 py-1 ${getStatusColor(book.status)}`}>
-            {book.status.replace('-', ' ')}
+          <Badge variant="outline" className={`text-sm px-3 py-1 ${getStatusColor(book.status)}`}>
+            {statusLabel(book.status)}
           </Badge>
           <div className="flex flex-wrap gap-2">
             {book.tags && JSON.parse(book.tags).map((tag: string) => (
@@ -78,7 +80,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         {!isOwner && owner?.username && (
           <p className="text-sm text-muted-foreground">
             On <Link href={`/${owner.username}`} className="text-primary hover:underline">{owner.name || owner.username}</Link>&apos;s shelf
-            {book.finishedAt && <> · finished {book.finishedAt}</>}
+            {book.finishedAt && <>, finished {book.finishedAt}</>}
           </p>
         )}
         
@@ -150,7 +152,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
                 <li key={project.id}>
                   <Link href={`/projects/${project.id}`} className="block p-3 rounded-lg border bg-card hover:border-primary/50 transition-colors">
                     <div className="font-medium">{project.name}</div>
-                    <div className="text-sm text-muted-foreground capitalize">{project.status.replace('-', ' ')}</div>
+                    <div className="text-sm text-muted-foreground">{statusLabel(project.status)}</div>
                   </Link>
                 </li>
               ))}

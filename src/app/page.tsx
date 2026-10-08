@@ -2,15 +2,17 @@ import { getDashboardMetrics, getInProgressItems, getMasterySnapshot, getRecentl
 import { headers } from "next/headers";
 import { Timeline } from "@/components/timeline";
 import { Landing } from "@/components/landing";
-import { Book, Compass, Folder, ChevronRight, CheckCircle2, ArrowRight, BookOpen, PenTool } from "lucide-react";
+import { Book, Compass, Folder, ChevronRight, BookOpen, PenTool } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
+import { HomeWidgets } from "@/components/home-widgets";
 import { buttonVariants } from "@/components/ui/button";
 
 import { auth } from "@/auth";
+import { statusLabel } from "@/lib/status";
 
 export default async function Dashboard() {
   const session = await auth();
@@ -38,30 +40,30 @@ export default async function Dashboard() {
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="space-y-8 sm:space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10 sm:space-y-12">
       
       {/* Top section - Hero & Metrics */}
       <section className="space-y-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">{greeting}{firstName && <>, <span className="text-accent-serif text-[1.1em]">{firstName}</span></>}.</h1>
-          <p className="text-muted-foreground mt-1">{today}</p>
+          <h1 className="font-display text-4xl sm:text-5xl">{greeting}{firstName && `, ${firstName}`}.</h1>
+          <p className="text-muted-foreground mt-2">{today}</p>
         </div>
 
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <MetricCard 
-            title="Books Finished" 
+            title="Books finished" 
             value={metrics.booksFinished.toString()} 
             icon={Book} 
             href="/books?status=finished" 
           />
           <MetricCard 
-            title="Concepts Mastered" 
+            title="Concepts mastered" 
             value={metrics.conceptsMastered.toString()} 
             icon={Compass} 
             href="/concepts?status=mastered" 
           />
           <MetricCard 
-            title="Projects Completed" 
+            title="Projects completed" 
             value={metrics.projectsCompleted.toString()} 
             icon={Folder} 
             href="/projects?status=completed" 
@@ -69,7 +71,7 @@ export default async function Dashboard() {
           <Link href="/concepts">
             <Card className="hover:border-primary/50 transition-all cursor-pointer shadow-sm group">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+                <CardTitle className="text-sm font-medium">Concepts in use</CardTitle>
                 <Compass className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </CardHeader>
               <CardContent>
@@ -82,13 +84,15 @@ export default async function Dashboard() {
         </div>
       </section>
 
+      <HomeWidgets username={username} />
+
       {/* Middle section - Two columns */}
       <section className="grid grid-cols-1 gap-8 md:grid-cols-7">
         
         {/* Left Column - Continue Learning */}
         <div className="min-w-0 md:col-span-4 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold tracking-tight">Continue Learning</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Pick up where you left off</h2>
           </div>
           
           <div className="space-y-4">
@@ -123,7 +127,7 @@ export default async function Dashboard() {
                 type="project"
                 id={project.id}
                 title={project.name}
-                subtitle="Active Project"
+                subtitle="In progress"
                 status={project.status}
                 icon={Folder}
               />
@@ -144,14 +148,15 @@ export default async function Dashboard() {
         {/* Right Column - Timeline preview */}
         <div className="min-w-0 md:col-span-3 space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-            <h2 className="text-xl font-semibold tracking-tight">Your Timeline</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Your timeline</h2>
             {username && (
               <Link href={`/${username}`} className="shrink-0 text-sm text-primary flex items-center hover:underline">
-                Public profile <ArrowRight className="ml-1 w-3 h-3" />
+                See your public page
               </Link>
             )}
           </div>
           <Timeline
+            compact
             events={timeline}
             emptyMessage="Add milestones like graduating or getting certified in Manage, and finished books and projects will show up here too."
           />
@@ -163,7 +168,7 @@ export default async function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 [&>*]:min-w-0">
           
           <div className="space-y-6">
-            <h2 className="text-xl font-semibold tracking-tight">Mastery Snapshot</h2>
+            <h2 className="text-xl font-semibold tracking-tight">Concepts by stage</h2>
             <Card className="shadow-sm">
               <CardContent className="p-6">
                 <div className="space-y-6">
@@ -175,7 +180,7 @@ export default async function Dashboard() {
                       </div>
                       <span className="text-sm font-bold">{snapshot.mastered}</span>
                     </div>
-                    <Progress value={snapshot.total > 0 ? (snapshot.mastered / snapshot.total) * 100 : 0} className="h-2 [&>div]:bg-emerald-500" />
+                    <Progress value={snapshot.total > 0 ? (snapshot.mastered / snapshot.total) * 100 : 0} className="h-2 [&_[data-slot=progress-indicator]]:bg-emerald-500" />
                   </div>
                   <div>
                     <div className="flex justify-between items-end mb-2">
@@ -185,7 +190,7 @@ export default async function Dashboard() {
                       </div>
                       <span className="text-sm font-bold">{snapshot.applied}</span>
                     </div>
-                    <Progress value={snapshot.total > 0 ? (snapshot.applied / snapshot.total) * 100 : 0} className="h-2 [&>div]:bg-sky-500" />
+                    <Progress value={snapshot.total > 0 ? (snapshot.applied / snapshot.total) * 100 : 0} className="h-2 [&_[data-slot=progress-indicator]]:bg-sky-500" />
                   </div>
                   <div>
                     <div className="flex justify-between items-end mb-2">
@@ -195,7 +200,7 @@ export default async function Dashboard() {
                       </div>
                       <span className="text-sm font-bold">{snapshot.studied}</span>
                     </div>
-                    <Progress value={snapshot.total > 0 ? (snapshot.studied / snapshot.total) * 100 : 0} className="h-2 [&>div]:bg-amber-500" />
+                    <Progress value={snapshot.total > 0 ? (snapshot.studied / snapshot.total) * 100 : 0} className="h-2 [&_[data-slot=progress-indicator]]:bg-amber-500" />
                   </div>
                 </div>
               </CardContent>
@@ -204,9 +209,9 @@ export default async function Dashboard() {
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold tracking-tight">Recently Conquered</h2>
+              <h2 className="text-xl font-semibold tracking-tight">Recently mastered</h2>
               <Link href="/concepts?status=mastered" className="text-sm text-primary flex items-center hover:underline">
-                View all <ArrowRight className="ml-1 w-3 h-3" />
+                See all
               </Link>
             </div>
             <div className="grid gap-3">
@@ -219,7 +224,7 @@ export default async function Dashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">{item.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{item.type === 'book' ? 'Book Finished' : 'Concept Mastered'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{item.type === 'book' ? 'Finished book' : 'Mastered concept'}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -281,11 +286,11 @@ function InProgressCard({ type, id, title, subtitle, status, icon: Icon, fileUrl
                 <span className="text-xs text-muted-foreground">{progress}%</span>
               </div>
             )}
-            <Badge variant="outline" className={`hidden sm:inline-flex capitalize ${getStatusColor(status)}`}>
-              {status.replace('-', ' ')}
+            <Badge variant="outline" className={`hidden sm:inline-flex ${getStatusColor(status)}`}>
+              {statusLabel(status)}
             </Badge>
             <div className="flex items-center text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-              <span className="hidden sm:inline">Resume</span> <ChevronRight className="ml-1 h-4 w-4" />
+              <span className="hidden sm:inline">{type === "book" && hasFile ? "Keep reading" : "Open"}</span> <ChevronRight className="ml-1 h-4 w-4" />
             </div>
           </div>
         </CardContent>

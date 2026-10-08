@@ -2,16 +2,18 @@
 
 import { signIn, signOut } from "@/auth";
 import { db } from "@/db";
-import { users, books, concepts, projects, milestones, accounts, sessions, bookConcepts, conceptProjects, bookProjects } from "@/db/schema";
-import { eq, inArray, or } from "drizzle-orm";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { getActionUserId } from "@/lib/session";
-import { deleteAvatar, deleteBookFile } from "@/lib/storage";
+import { deleteUserAndData } from "@/lib/account-deletion";
 import bcrypt from "bcryptjs";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { clientIp, ONE_HOUR, rateLimit } from "@/lib/rate-limit";
 import { normalizeUsername, validateUsername, isUsernameTaken } from "@/lib/username";
+import { AUTH_MESSAGES } from "@/lib/auth-messages";
+import { sendVerificationEmail } from "@/lib/account-emails";
 
 export async function authenticate(
   prevState: string | undefined,
@@ -21,13 +23,12 @@ export async function authenticate(
     await signIn('credentials', formData);
   } catch (error) {
     if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return (error as CredentialsSignin).code === 'rate_limited'
-            ? 'Too many sign-in attempts. Wait 15 minutes and try again.'
-            : 'Invalid credentials.';
-        default:
-          return 'Something went wrong.';
+      if (error.type !== 'CredentialsSignin') return AUTH_MESSAGES.unknown;
+      switch ((error as CredentialsSignin).code) {
+        case 'rate_limited': return AUTH_MESSAGES.rateLimited;
+        case 'unverified': return AUTH_MESSAGES.unverified;
+        case 'suspended': return AUTH_MESSAGES.suspended;
+        default: return AUTH_MESSAGES.invalid;
       }
     }
     throw error;
@@ -36,8 +37,8 @@ export async function authenticate(
 
 export async function register(prevState: any, formData: FormData) {
   try {
-    const name = formData.get('name') as string;
-    const email = formData.get('email') as string;
+    const name = ((formData.get('name') as string) || '').trim();
+    const email = ((formData.get('email') as string) || '').trim().toLowerCase();
     const password = formData.get('password') as string;
     const username = normalizeUsername((formData.get('username') as string) || '');
 
@@ -80,24 +81,17 @@ export async function register(prevState: any, formData: FormData) {
       username,
       password: hashedPassword,
     });
+
+    // Password accounts can sign in once they've confirmed the address is theirs.
+    // The account exists either way; if sending fails they can ask for a new link.
+    const emailSent = await sendVerificationEmail(email, name).catch((err) => {
+      console.error("Could not send verification email:", err);
+      return false;
+    });
+    return { success: true, email, emailSent };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to register" };
   }
-
-  // Sign the new user straight in. signIn redirects by throwing, so it sits outside the try.
-  try {
-    await signIn('credentials', {
-      email: formData.get('email'),
-      password: formData.get('password'),
-      redirectTo: '/manage',
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      return { success: true };
-    }
-    throw error;
-  }
-  return { success: true };
 }
 
 export async function handleSignOut() {
@@ -136,31 +130,7 @@ export async function deleteAccount(confirmation: string) {
     return { success: false, error: "Type your username exactly to confirm." };
   }
 
-  // Files first, so nothing is left behind in storage once the rows are gone.
-  const userBooks = await db.select({ id: books.id, fileUrl: books.fileUrl }).from(books).where(eq(books.userId, userId));
-  for (const book of userBooks) {
-    if (book.fileUrl) await deleteBookFile(book.fileUrl).catch((err) => console.warn("Could not delete book file:", err));
-  }
-  await deleteAvatar(userId).catch((err) => console.warn("Could not delete avatar:", err));
-
-  const bookIds = userBooks.map((b) => b.id);
-  const conceptIds = (await db.select({ id: concepts.id }).from(concepts).where(eq(concepts.userId, userId))).map((c) => c.id);
-  const projectIds = (await db.select({ id: projects.id }).from(projects).where(eq(projects.userId, userId))).map((p) => p.id);
-  const none = ["__none__"]; // inArray needs at least one value
-
-  // SQLite foreign keys aren't switched on for this connection, so remove the links explicitly.
-  db.transaction((tx) => {
-    tx.delete(bookConcepts).where(or(inArray(bookConcepts.bookId, bookIds.length ? bookIds : none), inArray(bookConcepts.conceptId, conceptIds.length ? conceptIds : none))).run();
-    tx.delete(conceptProjects).where(or(inArray(conceptProjects.conceptId, conceptIds.length ? conceptIds : none), inArray(conceptProjects.projectId, projectIds.length ? projectIds : none))).run();
-    tx.delete(bookProjects).where(or(inArray(bookProjects.bookId, bookIds.length ? bookIds : none), inArray(bookProjects.projectId, projectIds.length ? projectIds : none))).run();
-    tx.delete(milestones).where(eq(milestones.userId, userId)).run();
-    tx.delete(books).where(eq(books.userId, userId)).run();
-    tx.delete(concepts).where(eq(concepts.userId, userId)).run();
-    tx.delete(projects).where(eq(projects.userId, userId)).run();
-    tx.delete(accounts).where(eq(accounts.userId, userId)).run();
-    tx.delete(sessions).where(eq(sessions.userId, userId)).run();
-    tx.delete(users).where(eq(users.id, userId)).run();
-  });
+  await deleteUserAndData(userId);
 
   await signOut({ redirectTo: "/" });
   return { success: true };

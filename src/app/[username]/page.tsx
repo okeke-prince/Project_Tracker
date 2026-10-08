@@ -3,16 +3,16 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getUserByUsername, getTimeline, getPublicLibrary, getKnowledgeGraph } from "@/db/queries";
 import { getCurrentUserId } from "@/lib/session";
+import { isAdmin } from "@/lib/admin";
 import { Timeline } from "@/components/timeline";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CountUp, Reveal, Stagger, StaggerItem } from "@/components/motion";
 import { RepoLink } from "@/components/repo-link";
 import { LazyKnowledgeGraph } from "@/components/knowledge-graph";
 import { buttonVariants } from "@/components/ui/button";
-import { ArrowUpRight, Book as BookIcon, Compass, Folder, Milestone, Network, Pencil, Star, type LucideIcon } from "lucide-react";
+import { Download, Flag, Pencil, Star } from "lucide-react";
 import type { ReactNode } from "react";
+import { plural, statusLabel } from "@/lib/status";
+import { cn } from "@/lib/utils";
 
 type Props = { params: Promise<{ username: string }> };
 
@@ -34,26 +34,33 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// Monochrome status styles: done is solid, in progress is outlined, everything else is muted.
-const DONE = "bg-foreground text-background border-transparent";
-const ACTIVE = "border-foreground/40 text-foreground";
-const statusColor: Record<string, string> = {
-  finished: DONE,
-  mastered: DONE,
-  completed: DONE,
-  reading: ACTIVE,
-  applied: ACTIVE,
-  "in-progress": ACTIVE,
-};
-const defaultColor = "text-muted-foreground";
+// Things that are done read in full ink with a blue dot; everything else is muted.
+const DONE_STATUSES = new Set(["finished", "mastered", "completed"]);
+
+function Status({ status }: { status: string }) {
+  const done = DONE_STATUSES.has(status);
+  return (
+    <span className={cn("inline-flex shrink-0 items-center gap-1.5 text-xs", done ? "text-foreground" : "text-muted-foreground")}>
+      <span aria-hidden className={cn("h-1.5 w-1.5 rounded-full", done ? "bg-mark" : "border border-current")} />
+      {statusLabel(status)}
+    </span>
+  );
+}
+
+/** "6 books read, 18 concepts, 8 projects and 5 milestones so far." Empty counts are left out. */
+function summarise(parts: string[]) {
+  if (parts.length === 0) return null;
+  const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`;
+  return `${list.charAt(0).toUpperCase()}${list.slice(1)} so far.`;
+}
 
 export default async function ProfilePage({ params }: Props) {
   const username = cleanUsername((await params).username);
-  const user = await getUserByUsername(username);
-  if (!user) notFound();
+  const [user, viewerId] = await Promise.all([getUserByUsername(username, { includeSuspended: true }), getCurrentUserId()]);
+  // Suspended profiles are hidden, except from admins who need to review them.
+  if (!user || (user.suspendedAt && !(await isAdmin(viewerId)))) notFound();
 
-  const [viewerId, timeline, library, graph] = await Promise.all([
-    getCurrentUserId(),
+  const [timeline, library, graph] = await Promise.all([
     getTimeline(user.id),
     getPublicLibrary(user.id),
     getKnowledgeGraph(user.id),
@@ -64,165 +71,166 @@ export default async function ProfilePage({ params }: Props) {
   const name = user.name || user.username!;
   const initials = name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
-  const stats = [
-    { label: "Books read", value: library.books.filter((b) => b.status === "finished").length },
-    { label: "Concepts", value: library.concepts.length },
-    { label: "Projects", value: library.projects.length },
-    { label: "Milestones", value: timeline.filter((e) => e.kind === "milestone").length },
-  ];
+  const booksRead = library.books.filter((b) => b.status === "finished").length;
+  const milestoneCount = timeline.filter((e) => e.kind === "milestone").length;
+  const summary = summarise([
+    booksRead > 0 ? `${plural(booksRead, "book")} read` : "",
+    library.concepts.length > 0 ? plural(library.concepts.length, "concept") : "",
+    library.projects.length > 0 ? plural(library.projects.length, "project") : "",
+    milestoneCount > 0 ? plural(milestoneCount, "milestone") : "",
+  ].filter(Boolean));
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 sm:space-y-10">
-      <section className="relative pt-6 pb-4">
-        <Stagger className="flex flex-col sm:flex-row gap-6 sm:items-end">
-          <StaggerItem>
-            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 text-2xl ring-1 ring-border ring-offset-4 ring-offset-background">
-              <AvatarImage src={user.image || ""} alt={name} />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-          </StaggerItem>
-          <div className="flex-1 min-w-0 space-y-2">
-            <StaggerItem>
-              <p className="font-mono text-xs tracking-widest text-muted-foreground">@{user.username}</p>
-            </StaggerItem>
-            <StaggerItem>
-              <h1 className="text-[2.75rem] leading-none sm:text-6xl tracking-tight text-accent-serif break-words">{name}</h1>
-            </StaggerItem>
-            {user.headline && (
-              <StaggerItem>
-                <p className="text-lg text-muted-foreground">{user.headline}</p>
-              </StaggerItem>
+    <div className="max-w-6xl mx-auto space-y-14 sm:space-y-16">
+      {user.suspendedAt && (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          This account is suspended. Only admins can see this page. <Link href="/admin" className="underline underline-offset-4">Back to admin</Link>
+        </p>
+      )}
+
+      <header className="pt-4 sm:pt-8">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-14 w-14 text-base sm:h-16 sm:w-16">
+            <AvatarImage src={user.image || ""} alt={name} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          <p className="text-muted-foreground">@{user.username}</p>
+        </div>
+        <h1 className="mt-5 font-display text-5xl break-words sm:text-7xl lg:text-8xl">{name}</h1>
+        {user.headline && <p className="mt-4 max-w-2xl text-lg sm:text-xl">{user.headline}</p>}
+        {summary && <p className="mt-2 text-muted-foreground">{summary}</p>}
+        {user.bio && <p className="mt-5 max-w-2xl leading-relaxed text-muted-foreground whitespace-pre-line">{user.bio}</p>}
+
+        {(user.cvUpdatedAt || isOwner) && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {user.cvUpdatedAt && (
+              // A plain <a>: it's a file download, not a page.
+              <a href={`/api/cv/${user.username}?v=${user.cvUpdatedAt.getTime()}`} download className={buttonVariants()}>
+                <Download className="mr-2 h-4 w-4" /> Download CV
+              </a>
+            )}
+            {isOwner && (
+              <Link href="/manage?tab=profile" className={buttonVariants({ variant: "outline" })}>
+                <Pencil className="mr-2 h-4 w-4" /> Edit profile
+              </Link>
             )}
           </div>
-          {isOwner && (
-            <StaggerItem>
-              <Link href="/manage?tab=profile" className={buttonVariants({ variant: "outline", size: "sm" })}>
-                <Pencil className="mr-2 h-3 w-3" /> Edit profile
-              </Link>
-            </StaggerItem>
-          )}
-        </Stagger>
-
-        {user.bio && (
-          <Reveal delay={0.3}>
-            <p className="mt-6 max-w-2xl text-muted-foreground leading-relaxed whitespace-pre-line">{user.bio}</p>
-          </Reveal>
         )}
-      </section>
+      </header>
 
-      <Stagger className="surface grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border bg-border">
-        {stats.map((s) => (
-          <StaggerItem key={s.label} className="bg-card p-4 sm:p-5 dark:bg-background">
-            <CountUp value={s.value} className="block text-3xl font-semibold tabular-nums tracking-tight" />
-            <p className="mt-1 text-xs uppercase tracking-widest text-muted-foreground">{s.label}</p>
-          </StaggerItem>
-        ))}
-      </Stagger>
-
-      <Widget title="Projects" icon={Folder} count={library.projects.length} delay={0.05}>
+      <Section title="Projects" count={library.projects.length}>
         <ShowMore
-          layout="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          layout="grid grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-3"
           preview={6}
-          items={library.projects.map((project) => <ProjectCard key={project.id} project={project} />)}
+          items={library.projects.map((project) => <ProjectItem key={project.id} project={project} />)}
           empty={isOwner ? "Add your first project in Manage so it shows up here." : "No projects yet."}
         />
-      </Widget>
+      </Section>
 
       {graph.nodes.length > 0 && (
-        <Widget
+        <Section
           title="Knowledge map"
-          icon={Network}
-          delay={0.1}
           action={
-            <Link href={`/${user.username}/map`} className="group inline-flex items-center text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
-              Explore in 3D <ArrowUpRight className="ml-0.5 h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            <Link href={`/${user.username}/map`} className="text-sm font-medium underline-offset-4 hover:underline">
+              Open the full map
             </Link>
           }
         >
-          <p className="-mt-2 mb-3 text-sm text-muted-foreground">How {name}&apos;s concepts connect to the books that taught them and the projects that used them.</p>
-          <Link href={`/${user.username}/map`} aria-label={`Explore ${name}'s knowledge map`} className="block h-[280px] overflow-hidden rounded-xl border bg-background/40 sm:h-[360px]">
+          <p className="-mt-1 mb-4 max-w-2xl text-sm text-muted-foreground">How {name}&apos;s concepts connect to the books that taught them and the projects that used them.</p>
+          <Link href={`/${user.username}/map`} aria-label={`Open ${name}'s knowledge map`} className="block h-[300px] overflow-hidden border bg-card sm:h-[380px]">
             <LazyKnowledgeGraph nodes={graph.nodes} links={graph.links} compact />
           </Link>
-        </Widget>
+        </Section>
       )}
 
-      <section className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3 items-start [&>*]:min-w-0">
-        <Widget title="Timeline" icon={Milestone} className="lg:col-span-2 lg:row-span-2" delay={0.05}>
+      <div className="grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+        <Section title="Timeline">
           <Timeline
             events={timeline}
             emptyMessage={isOwner ? "Add a milestone or finish a book in Manage to start your timeline." : `${name} hasn't added anything yet.`}
           />
-        </Widget>
+        </Section>
 
-        <Widget title="Books" icon={BookIcon} count={library.books.length} delay={0.15}>
-          {readingNow.length > 0 && (
-            <div className="space-y-2 mb-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reading now</p>
-              {readingNow.map((book) => <BookRow key={book.id} book={book} />)}
-            </div>
-          )}
-          <ShowMore
-            items={otherBooks.map((book) => <BookRow key={book.id} book={book} />)}
-            empty={readingNow.length === 0 ? "No books yet." : null}
-          />
-        </Widget>
+        {/* One column that sticks beside the timeline, so books and concepts stay in reach as it scrolls. */}
+        <aside className="space-y-14 lg:sticky lg:top-20 lg:self-start">
+          <Section title="Books" count={library.books.length}>
+            {readingNow.length > 0 && (
+              <div className="mb-5">
+                <h3 className="text-sm font-medium text-muted-foreground">Reading now</h3>
+                <div className="mt-1">{readingNow.map((book) => <BookRow key={book.id} book={book} />)}</div>
+              </div>
+            )}
+            <ShowMore
+              items={otherBooks.map((book) => <BookRow key={book.id} book={book} />)}
+              empty={readingNow.length === 0 ? "No books yet." : null}
+              layout=""
+            />
+          </Section>
 
-        <Widget title="Concepts" icon={Compass} count={library.concepts.length} delay={0.25}>
-          {library.concepts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No concepts yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {(["mastered", "applied", "studied"] as const).map((status) => {
-                const group = library.concepts.filter((c) => c.status === status);
-                if (group.length === 0) return null;
-                return (
-                  <div key={status} className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{status} · {group.length}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {group.map((concept) => (
-                        <Link key={concept.id} href={`/concepts/${concept.id}`} title={concept.shortDescription ?? undefined}>
-                          <Badge variant="outline" className={`transition-transform hover:scale-105 ${statusColor[status] ?? defaultColor}`}>{concept.name}</Badge>
-                        </Link>
-                      ))}
+          <Section title="Concepts" count={library.concepts.length}>
+            {library.concepts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No concepts yet.</p>
+            ) : (
+              <div className="space-y-5">
+                {(["mastered", "applied", "studied"] as const).map((status) => {
+                  const group = library.concepts.filter((c) => c.status === status);
+                  if (group.length === 0) return null;
+                  return (
+                    <div key={status}>
+                      <h3 className="text-sm font-medium text-muted-foreground">{statusLabel(status)} ({group.length})</h3>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {group.map((concept) => (
+                          <Link
+                            key={concept.id}
+                            href={`/concepts/${concept.id}`}
+                            title={concept.shortDescription ?? undefined}
+                            className={cn(
+                              "rounded-md border px-2 py-0.5 text-sm transition-colors hover:border-foreground/40",
+                              status === "mastered" ? "border-mark/40 bg-mark/10" : status === "studied" && "text-muted-foreground",
+                            )}
+                          >
+                            {concept.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Widget>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        </aside>
+      </div>
 
-      </section>
+      {!isOwner && (
+        <footer className="flex justify-end border-t pt-6">
+          <Link href={`/report?user=${user.username}`} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+            <Flag className="h-3 w-3" /> Report this profile
+          </Link>
+        </footer>
+      )}
     </div>
   );
 }
 
-// Widgets
-
-function Widget({ title, icon: Icon, count, action, className, delay, children }: {
+function Section({ title, count, action, className, children }: {
   title: string;
-  icon: LucideIcon;
   count?: number;
   action?: ReactNode;
   className?: string;
-  delay?: number;
   children: ReactNode;
 }) {
   return (
-    <Reveal className={className} delay={delay}>
-      <Card className="surface shadow-none bg-card transition-colors hover:border-foreground/15 dark:bg-card/50">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-sm font-medium flex items-center gap-2 uppercase tracking-widest text-muted-foreground">
-            <Icon className="h-4 w-4 text-foreground" /> {title}
-          </CardTitle>
-          {count !== undefined && (
-            <span className="rounded-full border px-2 py-0.5 font-mono text-[11px] text-muted-foreground">{count}</span>
-          )}
-          {action}
-        </CardHeader>
-        <CardContent>{children}</CardContent>
-      </Card>
-    </Reveal>
+    <section className={cn("min-w-0", className)}>
+      <div className="mb-5 flex items-baseline justify-between gap-4 border-b pb-3">
+        <h2 className="text-lg font-semibold">
+          {title}
+          {count !== undefined && count > 0 && <span className="ml-2 font-normal text-muted-foreground">{count}</span>}
+        </h2>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -237,15 +245,15 @@ function ShowMore({ items, empty, layout = "space-y-2", preview = PREVIEW_COUNT 
 }) {
   if (items.length === 0) return empty ? <p className="text-sm text-muted-foreground">{empty}</p> : null;
   return (
-    <div className="space-y-2">
+    <div>
       <div className={layout}>{items.slice(0, preview)}</div>
       {items.length > preview && (
-        <details className="group space-y-2">
-          <summary className="cursor-pointer list-none text-sm text-primary hover:underline pt-1">
+        <details className="group">
+          <summary className="mt-3 cursor-pointer list-none text-sm font-medium underline-offset-4 hover:underline">
             <span className="group-open:hidden">Show all {items.length}</span>
-            <span className="hidden group-open:inline">Show less</span>
+            <span className="hidden group-open:inline">Show fewer</span>
           </summary>
-          <div className={`pt-2 ${layout}`}>{items.slice(preview)}</div>
+          <div className={cn("pt-1", layout)}>{items.slice(preview)}</div>
         </details>
       )}
     </div>
@@ -254,26 +262,21 @@ function ShowMore({ items, empty, layout = "space-y-2", preview = PREVIEW_COUNT 
 
 type PublicProject = Awaited<ReturnType<typeof getPublicLibrary>>["projects"][number];
 
-function ProjectCard({ project }: { project: PublicProject }) {
+function ProjectItem({ project }: { project: PublicProject }) {
+  const stack: string[] = project.techStack ? JSON.parse(project.techStack) : [];
   return (
-    <div className="relative flex h-full flex-col rounded-lg border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
-      <div className="flex items-center justify-between gap-2">
-        {/* Stretched link: the whole card opens the project, the repo link sits above it. */}
-        <Link href={`/projects/${project.id}`} className="font-medium text-sm truncate after:absolute after:inset-0">{project.name}</Link>
-        <Badge variant="outline" className={`capitalize text-[10px] shrink-0 ${statusColor[project.status] ?? defaultColor}`}>
-          {project.status.replace(/-/g, " ")}
-        </Badge>
+    <article className="relative flex h-full flex-col border-b py-4">
+      <div className="flex items-baseline justify-between gap-3">
+        {/* Stretched link: the whole item opens the project, the repo link sits above it. */}
+        <Link href={`/projects/${project.id}`} className="min-w-0 truncate font-semibold underline-offset-4 after:absolute after:inset-0 hover:underline">
+          {project.name}
+        </Link>
+        <Status status={project.status} />
       </div>
-      {project.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{project.description}</p>}
-      {project.techStack && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {JSON.parse(project.techStack).slice(0, 4).map((tech: string) => (
-            <Badge key={tech} variant="outline" className="text-[10px] bg-muted/50">{tech}</Badge>
-          ))}
-        </div>
-      )}
+      {project.description && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{project.description}</p>}
+      {stack.length > 0 && <p className="mt-2 text-xs text-muted-foreground">{stack.slice(0, 4).join(", ")}</p>}
       {project.repoUrl && <div className="mt-auto pt-3"><RepoLink url={project.repoUrl} /></div>}
-    </div>
+    </article>
   );
 }
 
@@ -281,19 +284,17 @@ type PublicBook = Awaited<ReturnType<typeof getPublicLibrary>>["books"][number];
 
 function BookRow({ book }: { book: PublicBook }) {
   return (
-    <Link href={`/books/${book.id}`} className="flex items-start justify-between gap-3 rounded-lg border p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-sm">
+    <Link href={`/books/${book.id}`} className="group flex items-start justify-between gap-3 border-b py-2.5 last:border-b-0">
       <div className="min-w-0">
-        <p className="font-medium text-sm line-clamp-1">{book.title}</p>
+        <p className="text-sm font-medium leading-snug underline-offset-4 group-hover:underline">{book.title}</p>
         <p className="text-xs text-muted-foreground line-clamp-1">{book.authors}</p>
       </div>
-      <div className="flex flex-col items-end gap-1 shrink-0">
-        <Badge variant="outline" className={`capitalize text-[10px] ${statusColor[book.status] ?? defaultColor}`}>
-          {book.status.replace(/-/g, " ")}
-        </Badge>
+      <div className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
+        {book.status !== "reading" && <Status status={book.status} />}
         {book.rating && (
-          <div className="flex text-yellow-500">
+          <div className="flex text-foreground/70" aria-label={`Rated ${book.rating} out of 5`}>
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className={`h-3 w-3 ${i < book.rating! ? "fill-current" : "text-muted"}`} />
+              <Star key={i} aria-hidden className={cn("h-3 w-3", i < book.rating! ? "fill-current" : "text-border")} />
             ))}
           </div>
         )}

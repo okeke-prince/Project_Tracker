@@ -1,6 +1,6 @@
 import { db } from "./index";
 import { books, concepts, projects, milestones, users, conceptProjects, bookConcepts, bookProjects } from "./schema";
-import { and, count, eq, desc, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, count, eq, desc, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 
 export async function getDashboardMetrics(userId: string) {
   const booksFinished = await db.select({ count: count() }).from(books).where(and(eq(books.userId, userId), eq(books.status, 'finished')));
@@ -44,6 +44,20 @@ export async function getMasterySnapshot(userId: string) {
   };
 }
 
+/** Dates for the growth page: books finished, concepts added, projects shipped, milestones reached. */
+export async function getGrowthInput(userId: string) {
+  const finishedBooks = await db.select({ finishedAt: books.finishedAt, updatedAt: books.updatedAt }).from(books).where(and(eq(books.userId, userId), eq(books.status, 'finished')));
+  const userConcepts = await db.select({ createdAt: concepts.createdAt }).from(concepts).where(eq(concepts.userId, userId));
+  const shipped = await db.select({ completedAt: projects.completedAt, updatedAt: projects.updatedAt }).from(projects).where(and(eq(projects.userId, userId), eq(projects.status, 'completed')));
+  const userMilestones = await db.select({ date: milestones.date }).from(milestones).where(eq(milestones.userId, userId));
+  return {
+    books: finishedBooks.map((b) => b.finishedAt || b.updatedAt),
+    concepts: userConcepts.map((c) => c.createdAt),
+    projects: shipped.map((p) => p.completedAt || p.updatedAt),
+    milestones: userMilestones.map((m) => m.date),
+  };
+}
+
 export async function getRecentlyMastered(userId: string) {
   const masteredConcepts = await db.select().from(concepts).where(and(eq(concepts.userId, userId), eq(concepts.status, 'mastered'))).orderBy(desc(concepts.updatedAt)).limit(3);
   const finishedBooks = await db.select().from(books).where(and(eq(books.userId, userId), eq(books.status, 'finished'))).orderBy(desc(books.updatedAt)).limit(3);
@@ -74,16 +88,19 @@ export type TimelineEvent = {
   concepts?: { id: string; name: string }[];
 };
 
-export async function getUserByUsername(username: string) {
+/** A public profile by username. Suspended accounts count as not found unless asked for. */
+export async function getUserByUsername(username: string, { includeSuspended = false } = {}) {
   return db.query.users.findFirst({
-    where: eq(users.username, username.toLowerCase()),
-    columns: { id: true, name: true, username: true, image: true, headline: true, bio: true },
+    where: includeSuspended
+      ? eq(users.username, username.toLowerCase())
+      : and(eq(users.username, username.toLowerCase()), isNull(users.suspendedAt)),
+    columns: { id: true, name: true, username: true, image: true, headline: true, bio: true, cvUpdatedAt: true, suspendedAt: true },
   });
 }
 
 /** What the navbar needs. Read from the DB because the session token keeps the picture from sign-in time. */
 export async function getNavUser(userId: string) {
-  return db.query.users.findFirst({ where: eq(users.id, userId), columns: { username: true, image: true, name: true } });
+  return db.query.users.findFirst({ where: eq(users.id, userId), columns: { username: true, image: true, name: true, email: true, suspendedAt: true } });
 }
 
 export async function getUsername(userId: string) {
@@ -126,17 +143,19 @@ export async function getTimeline(userId: string): Promise<TimelineEvent[]> {
   for (const p of userProjects) {
     if (p.status === 'idea') continue;
     const applied = p.conceptProjects.map((cp) => ({ id: cp.concept.id, name: cp.concept.name }));
+    const shipped = p.status === 'completed';
+    // A shipped project carries its details on the "Shipped" entry, so "Started" stays a one-liner.
     events.push({
       key: `project-started-${p.id}`,
       kind: 'project-started',
       date: p.createdAt,
       title: `Started ${p.name}`,
-      description: p.description,
+      description: shipped ? undefined : p.description,
       href: `/projects/${p.id}`,
-      repoUrl: p.repoUrl,
-      concepts: p.status === 'completed' ? undefined : applied,
+      repoUrl: shipped ? undefined : p.repoUrl,
+      concepts: shipped ? undefined : applied,
     });
-    if (p.status === 'completed') {
+    if (shipped) {
       events.push({
         key: `project-completed-${p.id}`,
         kind: 'project-completed',
@@ -190,7 +209,7 @@ export async function countAppliedConcepts(userId: string) {
 export async function getOwner(userId: string) {
   return db.query.users.findFirst({
     where: eq(users.id, userId),
-    columns: { name: true, username: true },
+    columns: { name: true, username: true, suspendedAt: true },
   });
 }
 
@@ -213,7 +232,7 @@ export async function getFeaturedProfiles(limit = 6) {
       milestones: milestoneCount,
     })
     .from(users)
-    .where(isNotNull(users.username))
+    .where(and(isNotNull(users.username), isNull(users.suspendedAt)))
     .orderBy(desc(sql`${bookCount} + ${projectCount} + ${conceptCount} + ${milestoneCount}`))
     .limit(limit);
 

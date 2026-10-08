@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 
 import { eq } from "drizzle-orm";
 import { requireUserId } from "@/lib/session";
+import { statusLabel } from "@/lib/status";
 
 export default async function BooksPage() {
   const userId = await requireUserId();
@@ -55,8 +56,8 @@ export default async function BooksPage() {
               <CardHeader className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <BookIcon className="h-4 w-4 text-muted-foreground" />
-                  <Badge variant="outline" className={`capitalize ${getStatusColor(book.status)}`}>
-                    {book.status.replace('-', ' ')}
+                  <Badge variant="outline" className={`${getStatusColor(book.status)}`}>
+                    {statusLabel(book.status)}
                   </Badge>
                 </div>
                 <CardTitle className="line-clamp-2">{book.title}</CardTitle>

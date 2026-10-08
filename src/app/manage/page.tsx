@@ -48,13 +48,13 @@ export default async function ManagePage({ searchParams }: { searchParams: Promi
 
   const profile = await db.query.users.findFirst({
     where: eq(users.id, userId),
-    columns: { name: true, username: true, headline: true, bio: true, image: true },
+    columns: { name: true, username: true, headline: true, bio: true, image: true, cvUpdatedAt: true },
   });
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Manage Knowledge</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Manage your timeline</h1>
         <p className="text-muted-foreground mt-2">Add, update, or remove your books, projects, concepts and milestones.</p>
       </div>
 

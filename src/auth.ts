@@ -4,15 +4,23 @@ import { db } from "@/db";
 import { accounts, sessions, users, verificationTokens } from "@/db/schema";
 import authConfig from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { generateUsername } from "@/lib/username";
 import { clientIp, FIFTEEN_MINUTES, rateLimit } from "@/lib/rate-limit";
+import { checkCredentials } from "@/lib/credentials";
 
 /** Thrown when someone has tried too many passwords; the sign-in form shows its own message for it. */
 class TooManyAttempts extends CredentialsSignin {
   code = "rate_limited";
+}
+
+class EmailNotVerified extends CredentialsSignin {
+  code = "unverified";
+}
+
+class AccountSuspended extends CredentialsSignin {
+  code = "suspended";
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -34,6 +42,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   ...authConfig,
+  callbacks: {
+    ...authConfig.callbacks,
+    // Suspended accounts can't sign in with Google or GitHub either.
+    async signIn({ user }) {
+      if (!user.email) return true;
+      const existing = await db.query.users.findFirst({ where: eq(users.email, user.email.toLowerCase()), columns: { suspendedAt: true } });
+      return !existing?.suspendedAt;
+    },
+  },
   providers: [
     ...authConfig.providers.filter((p: any) => p.id !== "credentials"),
     Credentials({
@@ -51,27 +68,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // Older accounts may have 6-character passwords, so sign-in only checks one is present.
-        const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(1) })
-          .safeParse(credentials);
+        const parsed = z.object({ email: z.string().email(), password: z.string().min(1) }).safeParse(credentials);
+        if (!parsed.success) return null;
 
-        if (parsedCredentials.success) {
-          const { email, password } = parsedCredentials.data;
-          
-          const user = await db.query.users.findFirst({
-            where: eq(users.email, email)
-          });
-          
-          if (!user || !user.password) return null;
-          
-          const passwordsMatch = await bcrypt.compare(password, user.password);
-
-          if (passwordsMatch) {
-            return user;
-          }
-        }
-        
-        console.log('Invalid credentials');
+        const result = await checkCredentials(parsed.data.email, parsed.data.password);
+        if (result.ok) return result.user;
+        if (result.reason === "unverified") throw new EmailNotVerified();
+        if (result.reason === "suspended") throw new AccountSuspended();
         return null;
       },
     }),

@@ -16,7 +16,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         <TriangleAlert className="h-6 w-6 text-muted-foreground" />
       </div>
       <div className="space-y-3">
-        <h1 className="text-4xl sm:text-5xl tracking-tight text-accent-serif">Something went wrong.</h1>
+        <h1 className="text-4xl sm:text-5xl font-display">Something went wrong.</h1>
         <p className="mx-auto max-w-sm text-muted-foreground">
           This page hit an unexpected error. Trying again usually fixes it.
         </p>

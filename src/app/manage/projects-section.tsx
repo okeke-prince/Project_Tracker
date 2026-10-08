@@ -10,6 +10,7 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteProject } from "@/app/actions/mutations";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { statusLabel, plural } from "@/lib/status";
 
 export function ProjectsSection({ projects, concepts, books }: { projects: any[], concepts: any[], books: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -38,11 +39,11 @@ export function ProjectsSection({ projects, concepts, books }: { projects: any[]
       <div className="flex justify-end">
         <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
           <SheetTrigger className={buttonVariants({ variant: "default" })}>
-            <Plus className="mr-2 h-4 w-4" /> Add Project
+            <Plus className="mr-2 h-4 w-4" /> Add project
           </SheetTrigger>
           <SheetContent className="sm:max-w-[640px] overflow-y-auto">
             <SheetHeader className="mb-6">
-              <SheetTitle>Add New Project</SheetTitle>
+              <SheetTitle>Add a project</SheetTitle>
             </SheetHeader>
             <ProjectForm concepts={concepts} books={books} onSuccess={() => setIsAddOpen(false)} />
           </SheetContent>
@@ -64,10 +65,10 @@ export function ProjectsSection({ projects, concepts, books }: { projects: any[]
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-lg truncate">{project.name}</h4>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <Badge variant="outline" className={`capitalize ${getStatusColor(project.status)}`}>
-                      {project.status.replace('-', ' ')}
+                    <Badge variant="outline" className={`${getStatusColor(project.status)}`}>
+                      {statusLabel(project.status)}
                     </Badge>
-                    <Badge variant="secondary" className="text-xs">{project.conceptProjects?.length || 0} Concepts</Badge>
+                    <Badge variant="secondary" className="text-xs">{plural(project.conceptProjects?.length || 0, "concept")}</Badge>
                     {project.techStack && JSON.parse(project.techStack).map((tech: string) => (
                       <Badge key={tech} variant="outline" className="text-xs bg-muted/50">{tech}</Badge>
                     ))}
@@ -81,7 +82,7 @@ export function ProjectsSection({ projects, concepts, books }: { projects: any[]
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-[640px] overflow-y-auto">
                       <SheetHeader className="mb-6">
-                        <SheetTitle>Edit Project</SheetTitle>
+                        <SheetTitle>Edit project</SheetTitle>
                       </SheetHeader>
                       <ProjectForm project={project} concepts={concepts} books={books} onSuccess={() => setEditingProject(null)} />
                     </SheetContent>

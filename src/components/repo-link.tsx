@@ -30,7 +30,7 @@ export function RepoLink({ url, variant = "inline", className }: { url: string; 
       target="_blank"
       rel="noreferrer"
       className={cn(
-        "group/repo relative z-10 inline-flex max-w-full items-center gap-1.5 font-mono transition-colors",
+        "group/repo relative z-10 inline-flex max-w-full items-center gap-1.5 transition-colors",
         variant === "button"
           ? "rounded-full border bg-card px-3.5 py-1.5 text-sm hover:border-foreground/40 surface dark:bg-card/50"
           : "text-xs text-muted-foreground hover:text-foreground",

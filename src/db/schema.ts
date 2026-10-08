@@ -153,6 +153,8 @@ export const users = sqliteTable("user", {
   username: text("username").unique(), // public profile URL: /<username>
   headline: text("headline"),
   bio: text("bio"),
+  cvUpdatedAt: integer("cv_updated_at", { mode: "timestamp_ms" }), // set while a CV is uploaded
+  suspendedAt: integer("suspended_at", { mode: "timestamp_ms" }), // set by an admin; hides the profile and blocks sign-in
 });
 
 export const accounts = sqliteTable(
@@ -200,3 +202,15 @@ export const verificationTokens = sqliteTable(
     }),
   })
 );
+
+// Reports people send about a profile, reviewed on /admin.
+export const reports = sqliteTable("reports", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  reportedUserId: text("reported_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reporterId: text("reporter_id").references(() => users.id, { onDelete: "set null" }), // null for signed-out visitors
+  reason: text("reason", { enum: ["impersonation", "copyright", "harassment", "spam", "other"] }).notNull(),
+  details: text("details"),
+  status: text("status", { enum: ["open", "resolved", "dismissed"] }).notNull().default("open"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(() => new Date()),
+  resolvedAt: integer("resolved_at", { mode: "timestamp_ms" }),
+});

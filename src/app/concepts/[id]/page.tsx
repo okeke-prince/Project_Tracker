@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Book, Folder, ArrowLeft } from "lucide-react";
 import { getCurrentUserId } from "@/lib/session";
 import { getOwner } from "@/db/queries";
+import { statusLabel } from "@/lib/status";
 
 export default async function ConceptDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,6 +21,7 @@ export default async function ConceptDetailPage({ params }: { params: Promise<{ 
 
   const isOwner = (await getCurrentUserId()) === concept.userId;
   const owner = await getOwner(concept.userId);
+  if (owner?.suspendedAt) notFound(); // suspended profiles are hidden everywhere
 
   // Fetch related books
   const relatedBooksLinks = await db.select().from(bookConcepts).where(eq(bookConcepts.conceptId, concept.id));
@@ -108,7 +110,7 @@ export default async function ConceptDetailPage({ params }: { params: Promise<{ 
                 <li key={project.id}>
                   <Link href={`/projects/${project.id}`} className="block p-3 rounded-lg border bg-card hover:border-primary/50 transition-colors">
                     <div className="font-medium">{project.name}</div>
-                    <div className="text-sm text-muted-foreground capitalize">{project.status.replace('-', ' ')}</div>
+                    <div className="text-sm text-muted-foreground">{statusLabel(project.status)}</div>
                   </Link>
                 </li>
               ))}

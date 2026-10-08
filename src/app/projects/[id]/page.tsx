@@ -8,6 +8,7 @@ import { Compass, Book, ArrowLeft } from "lucide-react";
 import { RepoLink } from "@/components/repo-link";
 import { getCurrentUserId } from "@/lib/session";
 import { getOwner } from "@/db/queries";
+import { statusLabel } from "@/lib/status";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,6 +22,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   const isOwner = (await getCurrentUserId()) === project.userId;
   const owner = await getOwner(project.userId);
+  if (owner?.suspendedAt) notFound(); // suspended profiles are hidden everywhere
 
   // Fetch related concepts
   const relatedConceptsLinks = await db.select().from(conceptProjects).where(eq(conceptProjects.projectId, project.id));
@@ -52,8 +54,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-          <Badge variant="outline" className={`capitalize text-sm px-3 py-1 ${getStatusColor(project.status)}`}>
-            {project.status.replace('-', ' ')}
+          <Badge variant="outline" className={`text-sm px-3 py-1 ${getStatusColor(project.status)}`}>
+            {statusLabel(project.status)}
           </Badge>
           <div className="flex flex-wrap gap-2">
             {project.tags && JSON.parse(project.tags).map((tag: string) => (
@@ -75,7 +77,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       )}
 
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Lessons Learned</h3>
+        <h3 className="text-xl font-semibold">Lessons learned</h3>
         <div className="prose dark:prose-invert max-w-none">
           {project.lessonsLearned ? (
             <div>{project.lessonsLearned}</div>

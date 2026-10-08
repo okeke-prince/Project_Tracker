@@ -9,7 +9,7 @@ import { GitHubMark } from "@/components/repo-link";
 // What Auth.js puts in ?error= when a Google or GitHub sign-in fails.
 const ERRORS: Record<string, string> = {
   OAuthAccountNotLinked: "That email already has an account with a password. Sign in with your email and password instead.",
-  AccessDenied: "Sign-in was cancelled.",
+  AccessDenied: "Sign-in was cancelled, or this account has been suspended.",
   Configuration: "That sign-in option isn't set up yet. Use your email and password for now.",
 };
 
@@ -57,7 +57,7 @@ export function OAuthButtons({ divider }: { divider: string }) {
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
+        <div className="relative flex justify-center text-sm">
           <span className="bg-card px-2 text-muted-foreground">{divider}</span>
         </div>
       </div>

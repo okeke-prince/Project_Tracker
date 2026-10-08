@@ -79,7 +79,7 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
               <SelectValue placeholder="Select a status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="want-to-read">Want to Read</SelectItem>
+              <SelectItem value="want-to-read">Want to read</SelectItem>
               <SelectItem value="reading">Reading</SelectItem>
               <SelectItem value="finished">Finished</SelectItem>
               <SelectItem value="reference">Reference</SelectItem>
@@ -109,7 +109,7 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
       </div>
 
       <div className="space-y-2">
-        <Label>Linked Concepts</Label>
+        <Label>Linked concepts</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[150px]">
             <div className="space-y-2 p-2">
@@ -134,7 +134,7 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
       </div>
 
       <div className="space-y-2">
-        <Label>Linked Projects</Label>
+        <Label>Linked projects</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[150px]">
             <div className="space-y-2 p-2">
@@ -159,7 +159,7 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
       </div>
 
       <div className="pt-4 border-t flex justify-end">
-        <SubmitButton>{book ? 'Update Book' : 'Add Book'}</SubmitButton>
+        <SubmitButton>{book ? 'Save changes' : 'Add book'}</SubmitButton>
       </div>
     </form>
   );

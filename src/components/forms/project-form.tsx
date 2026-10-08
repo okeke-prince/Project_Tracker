@@ -52,7 +52,7 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="idea">Idea</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
+            <SelectItem value="in-progress">In progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
@@ -99,7 +99,7 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
       </div>
 
       <div className="space-y-2">
-        <Label>Linked Concepts</Label>
+        <Label>Linked concepts</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[120px]">
             <div className="space-y-2 p-2">
@@ -122,7 +122,7 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
       </div>
       
       <div className="space-y-2">
-        <Label>Linked Books</Label>
+        <Label>Linked books</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[120px]">
             <div className="space-y-2 p-2">
@@ -145,7 +145,7 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
       </div>
 
       <div className="pt-4 border-t flex justify-end">
-        <SubmitButton>{project ? 'Update Project' : 'Add Project'}</SubmitButton>
+        <SubmitButton>{project ? 'Save changes' : 'Add project'}</SubmitButton>
       </div>
     </form>
   );

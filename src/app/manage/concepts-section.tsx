@@ -10,6 +10,7 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteConcept } from "@/app/actions/mutations";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { statusLabel } from "@/lib/status";
 
 export function ConceptsSection({ concepts }: { concepts: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -37,11 +38,11 @@ export function ConceptsSection({ concepts }: { concepts: any[] }) {
       <div className="flex justify-end">
         <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
           <SheetTrigger className={buttonVariants({ variant: "default" })}>
-            <Plus className="mr-2 h-4 w-4" /> Add Concept
+            <Plus className="mr-2 h-4 w-4" /> Add concept
           </SheetTrigger>
           <SheetContent className="sm:max-w-[540px] overflow-y-auto">
             <SheetHeader className="mb-6">
-              <SheetTitle>Add New Concept</SheetTitle>
+              <SheetTitle>Add a concept</SheetTitle>
             </SheetHeader>
             <ConceptForm onSuccess={() => setIsAddOpen(false)} />
           </SheetContent>
@@ -64,8 +65,8 @@ export function ConceptsSection({ concepts }: { concepts: any[] }) {
                   <h4 className="font-semibold text-lg truncate">{concept.name}</h4>
                   <p className="text-sm text-muted-foreground truncate">{concept.shortDescription}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline" className={`capitalize ${getStatusColor(concept.status)}`}>
-                      {concept.status.replace('-', ' ')}
+                    <Badge variant="outline" className={`${getStatusColor(concept.status)}`}>
+                      {statusLabel(concept.status)}
                     </Badge>
                   </div>
                 </div>
@@ -77,7 +78,7 @@ export function ConceptsSection({ concepts }: { concepts: any[] }) {
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-[540px] overflow-y-auto">
                       <SheetHeader className="mb-6">
-                        <SheetTitle>Edit Concept</SheetTitle>
+                        <SheetTitle>Edit concept</SheetTitle>
                       </SheetHeader>
                       <ConceptForm concept={concept} onSuccess={() => setEditingConcept(null)} />
                     </SheetContent>

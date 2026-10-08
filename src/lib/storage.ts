@@ -183,6 +183,55 @@ export async function deleteAvatar(userId: string): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// CVs. Public like avatars, served by /api/cv/<username>. One PDF per user at a fixed key.
+// ---------------------------------------------------------------------------
+
+export const CV_MAX_BYTES = 5 * 1024 * 1024;
+
+const cvKey = (userId: string) => `cvs/${path.basename(userId)}.pdf`;
+
+/** True when the bytes start like a PDF file, whatever the browser claimed the type was. */
+export function isPdf(bytes: Uint8Array): boolean {
+  return Buffer.from(bytes.subarray(0, 5)).toString("latin1") === "%PDF-";
+}
+
+export async function uploadCv(userId: string, file: File): Promise<void> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  if (isS3Configured()) {
+    await getS3Client().send(new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET_NAME!,
+      Key: cvKey(userId),
+      Body: buffer,
+      ContentType: "application/pdf",
+    }));
+  } else {
+    const filePath = localFilePath(`local://${cvKey(userId)}`);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, buffer);
+  }
+}
+
+export async function readCv(userId: string): Promise<Buffer | null> {
+  try {
+    if (isS3Configured()) {
+      const response = await getS3Client().send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: cvKey(userId) }));
+      return response.Body ? Buffer.from(await response.Body.transformToByteArray()) : null;
+    }
+    return await fs.readFile(localFilePath(`local://${cvKey(userId)}`));
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteCv(userId: string): Promise<void> {
+  if (isS3Configured()) {
+    await getS3Client().send(new DeleteObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: cvKey(userId) }));
+  } else {
+    await fs.unlink(localFilePath(`local://${cvKey(userId)}`)).catch(() => {});
+  }
+}
+
 function sniffImageType(bytes: Buffer): string {
   if (bytes[0] === 0x89 && bytes[1] === 0x50) return "image/png";
   if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";

@@ -4,12 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Book, Compass, Folder, Home, Menu, Search, Moon, Sun, Settings, UserRound, X } from "lucide-react";
+import { Book, Compass, Folder, Home, Menu, Moon, Sun, Settings, UserRound, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "./ui/button";
 
 import { UserMenu } from "./user-menu";
+import { SearchCommand } from "./search-command";
+import { LogoMark } from "./logo";
 import type { Session } from "next-auth";
 
 const navItems = [
@@ -20,7 +22,7 @@ const navItems = [
   { href: "/manage", label: "Manage", icon: Settings },
 ];
 
-export function Navbar({ session, username }: { session: Session | null; username?: string | null }) {
+export function Navbar({ session, username, isAdmin = false }: { session: Session | null; username?: string | null; isAdmin?: boolean }) {
   const pathname = usePathname();
   const { setTheme, theme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -34,7 +36,7 @@ export function Navbar({ session, username }: { session: Session | null; usernam
     <header className="sticky top-0 z-50 w-full border-b border-border/70 dark:border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 max-w-screen-2xl items-center gap-2 px-4">
         <Link href="/" className="mr-2 flex shrink-0 items-center gap-2 lg:mr-4">
-          <Compass className="h-6 w-6 text-primary transition-transform duration-500 hover:rotate-90" />
+          <LogoMark className="transition-transform duration-300 hover:scale-105" />
           <span className="hidden font-bold sm:inline">Knowledge Tracker</span>
         </Link>
 
@@ -65,12 +67,7 @@ export function Navbar({ session, username }: { session: Session | null; usernam
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          {session?.user && (
-            <Button variant="outline" className="hidden justify-start text-sm text-muted-foreground lg:flex lg:w-56 xl:w-64" onClick={() => alert('Search not implemented yet')}>
-              <Search className="mr-2 h-4 w-4" />
-              Search...
-            </Button>
-          )}
+          <SearchCommand signedIn={!!session?.user} />
           <Button
             variant="ghost"
             size="icon"
@@ -81,7 +78,7 @@ export function Navbar({ session, username }: { session: Session | null; usernam
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          <UserMenu session={session} username={username} />
+          <UserMenu session={session} username={username} isAdmin={isAdmin} />
 
           {items.length > 0 && (
             <Button

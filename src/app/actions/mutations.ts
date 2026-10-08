@@ -5,7 +5,7 @@ import { books, projects, concepts, milestones, users, bookConcepts, conceptProj
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { bookSchema, projectSchema, conceptSchema, milestoneSchema, profileSchema } from "./schema";
-import { uploadBookFile, deleteBookFile, uploadAvatar, deleteAvatar, AVATAR_MAX_BYTES, AVATAR_TYPES } from "@/lib/storage";
+import { uploadBookFile, deleteBookFile, uploadAvatar, deleteAvatar, AVATAR_MAX_BYTES, AVATAR_TYPES, uploadCv, deleteCv, isPdf, CV_MAX_BYTES } from "@/lib/storage";
 import { getActionUserId } from "@/lib/session";
 import { normalizeUsername, validateUsername, isUsernameTaken } from "@/lib/username";
 import { getUsername } from "@/db/queries";
@@ -391,9 +391,13 @@ export async function saveProfile(prevState: any, formData: FormData) {
     const userId = await getActionUserId();
     const avatar = formData.get("avatar") as File | null;
     const removeAvatar = formData.get("removeAvatar") === "on";
+    const cv = formData.get("cv") as File | null;
+    const removeCv = formData.get("removeCv") === "on";
     const fields = Object.fromEntries(formData.entries());
     delete fields.avatar;
     delete fields.removeAvatar;
+    delete fields.cv;
+    delete fields.removeCv;
     const validatedData = profileSchema.parse(fields);
     const username = normalizeUsername(validatedData.username);
 
@@ -416,12 +420,25 @@ export async function saveProfile(prevState: any, formData: FormData) {
       image = null;
     }
 
+    // CV: same rules, a new upload wins over "remove". Only real PDFs are accepted.
+    let cvUpdatedAt: Date | null | undefined = undefined;
+    if (cv && cv.size > 0) {
+      if (cv.size > CV_MAX_BYTES) return { success: false, error: "CVs can be up to 5 MB." };
+      if (!isPdf(new Uint8Array(await cv.slice(0, 5).arrayBuffer()))) return { success: false, error: "Upload your CV as a PDF." };
+      await uploadCv(userId, cv);
+      cvUpdatedAt = new Date();
+    } else if (removeCv) {
+      await deleteCv(userId).catch((err) => console.warn("Could not delete CV:", err));
+      cvUpdatedAt = null;
+    }
+
     await db.update(users).set({
       name: validatedData.name,
       username,
       headline: validatedData.headline || null,
       bio: validatedData.bio || null,
       ...(image !== undefined ? { image } : {}),
+      ...(cvUpdatedAt !== undefined ? { cvUpdatedAt } : {}),
     }).where(eq(users.id, userId));
 
     if (previousUsername) revalidatePath(`/${previousUsername}`);

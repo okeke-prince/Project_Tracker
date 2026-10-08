@@ -9,8 +9,7 @@ export default function NotFound() {
         <Compass className="h-6 w-6 text-muted-foreground" />
       </div>
       <div className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">404</p>
-        <h1 className="text-4xl sm:text-5xl tracking-tight text-accent-serif">Off the map.</h1>
+                <h1 className="text-4xl sm:text-5xl font-display">Off the map.</h1>
         <p className="mx-auto max-w-sm text-muted-foreground">
           This page or profile doesn&apos;t exist. The link may be mistyped, or the username may have changed.
         </p>

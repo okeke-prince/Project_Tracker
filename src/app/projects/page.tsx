@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/empty-state";
 import { buttonVariants } from "@/components/ui/button";
 import { eq } from "drizzle-orm";
 import { requireUserId } from "@/lib/session";
+import { statusLabel } from "@/lib/status";
 
 export default async function ProjectsPage() {
   const userId = await requireUserId();
@@ -51,8 +52,8 @@ export default async function ProjectsPage() {
               <CardHeader className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <Folder className="h-4 w-4 text-muted-foreground" />
-                  <Badge variant="outline" className={`capitalize ${getStatusColor(project.status)}`}>
-                    {project.status.replace('-', ' ')}
+                  <Badge variant="outline" className={`${getStatusColor(project.status)}`}>
+                    {statusLabel(project.status)}
                   </Badge>
                 </div>
                 <CardTitle className="line-clamp-1">{project.name}</CardTitle>

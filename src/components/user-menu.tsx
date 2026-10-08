@@ -4,12 +4,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { buttonVariants } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { handleSignOut } from "@/app/actions/auth";
-import { LogOut, Settings, UserRound } from "lucide-react";
+import { LogOut, Settings, ShieldCheck, UserRound } from "lucide-react";
 import type { Session } from "next-auth";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-export function UserMenu({ session, username }: { session: Session | null; username?: string | null }) {
+export function UserMenu({ session, username, isAdmin = false }: { session: Session | null; username?: string | null; isAdmin?: boolean }) {
   if (!session?.user) {
     return (
       <div className="flex items-center gap-2">
@@ -56,6 +56,12 @@ export function UserMenu({ session, username }: { session: Session | null; usern
           <Settings className="mr-2 h-4 w-4" />
           <span>Manage</span>
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem render={<Link href="/admin" className="cursor-pointer" />}>
+            <ShieldCheck className="mr-2 h-4 w-4" />
+            <span>Admin</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" render={<button form="logout-form" type="submit" className="w-full cursor-pointer" />}>
           <LogOut className="mr-2 h-4 w-4" />

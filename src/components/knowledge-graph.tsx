@@ -6,7 +6,7 @@ import type { GraphLink, GraphNode } from "@/db/queries";
 
 const Loading = () => (
   <div className="flex h-full items-center justify-center">
-    <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground animate-pulse">Building the map…</span>
+    <span className="text-sm text-muted-foreground animate-pulse">Building the map…</span>
   </div>
 );
 

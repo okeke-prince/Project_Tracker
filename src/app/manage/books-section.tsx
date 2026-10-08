@@ -10,6 +10,7 @@ import { Plus, Edit2, Trash2 } from "lucide-react";
 import { deleteBook } from "@/app/actions/mutations";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { statusLabel, plural } from "@/lib/status";
 
 export function BooksSection({ books, concepts, projects }: { books: any[], concepts: any[], projects: any[] }) {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -38,11 +39,11 @@ export function BooksSection({ books, concepts, projects }: { books: any[], conc
       <div className="flex justify-end">
         <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
           <SheetTrigger className={buttonVariants({ variant: "default" })}>
-            <Plus className="mr-2 h-4 w-4" /> Add Book
+            <Plus className="mr-2 h-4 w-4" /> Add book
           </SheetTrigger>
           <SheetContent className="sm:max-w-[540px] overflow-y-auto">
             <SheetHeader className="mb-6">
-              <SheetTitle>Add New Book</SheetTitle>
+              <SheetTitle>Add a book</SheetTitle>
             </SheetHeader>
             <BookForm concepts={concepts} projects={projects} onSuccess={() => setIsAddOpen(false)} />
           </SheetContent>
@@ -65,10 +66,10 @@ export function BooksSection({ books, concepts, projects }: { books: any[], conc
                   <h4 className="font-semibold text-lg truncate">{book.title}</h4>
                   <p className="text-sm text-muted-foreground truncate">{book.authors}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline" className={`capitalize ${getStatusColor(book.status)}`}>
-                      {book.status.replace('-', ' ')}
+                    <Badge variant="outline" className={`${getStatusColor(book.status)}`}>
+                      {statusLabel(book.status)}
                     </Badge>
-                    <Badge variant="secondary" className="text-xs">{book.bookConcepts?.length || 0} Concepts</Badge>
+                    <Badge variant="secondary" className="text-xs">{plural(book.bookConcepts?.length || 0, "concept")}</Badge>
                     {book.progress > 0 && book.progress < 100 && (
                       <span className="text-xs text-muted-foreground font-medium flex items-center ml-2">
                         {book.progress}% read
@@ -84,7 +85,7 @@ export function BooksSection({ books, concepts, projects }: { books: any[], conc
                     </SheetTrigger>
                     <SheetContent className="sm:max-w-[540px] overflow-y-auto">
                       <SheetHeader className="mb-6">
-                        <SheetTitle>Edit Book</SheetTitle>
+                        <SheetTitle>Edit book</SheetTitle>
                       </SheetHeader>
                       <BookForm book={book} concepts={concepts} projects={projects} onSuccess={() => setEditingBook(null)} />
                     </SheetContent>

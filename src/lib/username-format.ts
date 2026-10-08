@@ -3,9 +3,10 @@ export const USERNAME_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])$/;
 // Profiles live at the site root (/<username>), so names that clash with app routes,
 // or that would look official, are off limits.
 export const RESERVED = new Set([
-  "admin", "api", "app", "about", "auth", "books", "concepts", "dashboard", "help", "home",
-  "login", "logout", "manage", "me", "privacy", "profile", "projects", "read", "register",
-  "settings", "signin", "signup", "support", "terms", "u", "uploads",
+  "admin", "api", "app", "about", "auth", "books", "concepts", "dashboard", "forgot-password", "growth", "help", "home",
+  "login", "logout", "manage", "me", "privacy", "profile", "projects", "read", "register", "report",
+  "resend-verification", "reset-password", "settings", "signin", "signup", "support", "terms", "u", "uploads",
+  "verify-email",
 ]);
 
 export function normalizeUsername(raw: string): string {

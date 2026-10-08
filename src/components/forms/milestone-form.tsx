@@ -71,7 +71,7 @@ export function MilestoneForm({ milestone, onSuccess }: MilestoneFormProps) {
       </div>
 
       <div className="pt-4 border-t flex justify-end">
-        <SubmitButton>{milestone ? 'Update Milestone' : 'Add Milestone'}</SubmitButton>
+        <SubmitButton>{milestone ? 'Save changes' : 'Add milestone'}</SubmitButton>
       </div>
     </form>
   );

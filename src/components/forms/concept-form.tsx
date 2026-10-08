@@ -43,7 +43,7 @@ export function ConceptForm({ concept, onSuccess }: ConceptFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shortDescription">Short Description</Label>
+        <Label htmlFor="shortDescription">Short description</Label>
         <Input id="shortDescription" name="shortDescription" defaultValue={concept?.shortDescription} />
       </div>
 
@@ -72,7 +72,7 @@ export function ConceptForm({ concept, onSuccess }: ConceptFormProps) {
       </div>
 
       <div className="pt-4 border-t flex justify-end">
-        <SubmitButton>{concept ? 'Update Concept' : 'Add Concept'}</SubmitButton>
+        <SubmitButton>{concept ? 'Save changes' : 'Add concept'}</SubmitButton>
       </div>
     </form>
   );

@@ -1,10 +1,16 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 
-/** The signed-in user's id, or null for visitors. */
+/** The signed-in user's id, or null for visitors. Suspended accounts count as signed out. */
 export async function getCurrentUserId(): Promise<string | null> {
   const session = await auth();
-  return session?.user?.id ?? null;
+  const id = session?.user?.id;
+  if (!id) return null;
+  const user = await db.query.users.findFirst({ where: eq(users.id, id), columns: { suspendedAt: true } });
+  return user && !user.suspendedAt ? id : null;
 }
 
 /** For pages: the signed-in user's id, redirecting visitors to the login page. */

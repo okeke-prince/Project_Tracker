@@ -10,15 +10,16 @@ import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
 import ForceGraph3D from "react-force-graph-3d";
 import SpriteText from "three-spritetext";
-import { ArrowRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { GraphLink, GraphNode } from "@/db/queries";
+import { statusLabel } from "@/lib/status";
 
 type Node = GraphNode & { x?: number; y?: number; z?: number; degree: number };
 type Link3D = { source: string | Node; target: string | Node };
 
 const PALETTE = {
-  dark: { concept: "#f3ede2", book: "#f5c451", project: "#4ade80", link: "rgba(243,237,226,0.14)", dim: "#3a3631", text: "#f3ede2" },
-  light: { concept: "#2b2118", book: "#c28512", project: "#15803d", link: "rgba(43,33,24,0.18)", dim: "#d6cdbf", text: "#2b2118" },
+  dark: { concept: "#eef1f6", book: "#f5c451", project: "#4ade80", link: "rgba(238,241,246,0.16)", dim: "#353b4a", text: "#eef1f6" },
+  light: { concept: "#1c2130", book: "#b7791f", project: "#15803d", link: "rgba(28,33,48,0.18)", dim: "#d5d9e2", text: "#1c2130" },
 };
 
 const TYPE_LABEL = { concept: "Concept", book: "Book", project: "Project" } as const;
@@ -93,7 +94,7 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
     (node: Node) => {
       const sprite = new SpriteText(node.name);
       sprite.color = colors.text;
-      sprite.textHeight = node.type === "concept" ? 3.2 : 2.6;
+      sprite.textHeight = node.type === "concept" ? 4.2 : 3.4;
       sprite.fontFace = getComputedStyle(document.body).fontFamily; // canvas text needs the real family name
       sprite.fontWeight = node.type === "concept" ? "600" : "400";
       sprite.backgroundColor = false;
@@ -103,10 +104,32 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
     [colors.text],
   );
 
-  // Frame the whole map once, when it first settles. After that, zooming out is up to
-  // empty-space clicks so a focused node stays in view.
+  // The layout is pre-computed (warmupTicks), so the first frame can already be framed to
+  // fit; it's framed again, smoothly, once the layout settles. After that, zooming out is
+  // up to empty-space clicks so a focused node stays in view.
+  const prefitted = useRef(false);
   const fitted = useRef(false);
-  const zoomOut = () => fgRef.current?.zoomToFit(800, 60);
+  // The library's zoomToFit frames a sphere around the origin, which leaves an off-centre
+  // map small in a wide box. This frames the nodes' own bounding box against both the
+  // vertical and horizontal field of view instead. Depth counts as width too, because the
+  // map turns slowly and what is deep now will be at the side later.
+  const zoomOut = (ms = 800) => {
+    const fg = fgRef.current;
+    const placed = graphData.nodes.filter((n) => n.x !== undefined && n.y !== undefined && n.z !== undefined);
+    if (!fg || placed.length === 0 || size.height === 0) return;
+    const span = (key: "x" | "y" | "z") => {
+      const values = placed.map((n) => n[key]!);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      return { mid: (min + max) / 2, half: (max - min) / 2 + 8 };
+    };
+    const x = span("x"), y = span("y"), z = span("z");
+    const vfov = (fg.camera().fov * Math.PI) / 180;
+    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * (size.width / size.height));
+    const halfWidth = Math.max(x.half, z.half);
+    const distance = Math.max(y.half / Math.tan(vfov / 2), halfWidth / Math.tan(hfov / 2)) * (compact ? 1.05 : 1.15) + halfWidth;
+    fg.cameraPosition({ x: x.mid, y: y.mid, z: z.mid + distance }, { x: x.mid, y: y.mid, z: z.mid }, ms);
+  };
   const clearSelection = () => {
     setSelected(null);
     zoomOut();
@@ -166,7 +189,13 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
             flyTo(n);
           }}
           onBackgroundClick={clearSelection}
-          cooldownTicks={120}
+          warmupTicks={100}
+          cooldownTicks={60}
+          onEngineTick={() => {
+            if (prefitted.current) return;
+            prefitted.current = true;
+            zoomOut(0);
+          }}
           onEngineStop={() => {
             if (fitted.current) return;
             fitted.current = true;
@@ -178,7 +207,7 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
       {compact && <div aria-hidden className="absolute inset-0" />}
 
       {/* Legend */}
-      <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap gap-3 font-mono sm:left-4 sm:top-4 sm:gap-4 text-[11px] uppercase tracking-widest text-muted-foreground">
+      <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap gap-3 text-xs text-muted-foreground sm:left-4 sm:top-4 sm:gap-4">
         {(["concept", "book", "project"] as const).map((type) => (
           <span key={type} className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: colors[type] }} />
@@ -189,7 +218,7 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
 
       {!compact && (
         <p className="pointer-events-none absolute bottom-4 left-4 hidden text-xs text-muted-foreground sm:block">
-          Drag to orbit · scroll to zoom · click a node to focus, empty space to zoom out
+          Drag to turn the map, scroll to zoom. Click a dot to focus on it, or empty space to see everything.
         </p>
       )}
 
@@ -202,12 +231,12 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             transition={{ duration: 0.25 }}
-            className="surface absolute inset-x-3 bottom-3 rounded-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-72 border bg-card/90 p-4 backdrop-blur"
+            className="surface absolute inset-x-3 bottom-3 sm:inset-x-auto sm:bottom-4 sm:right-4 sm:w-72 border bg-card/90 p-4 backdrop-blur"
           >
             <div className="flex items-start justify-between gap-2">
-              <span className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="h-2 w-2 rounded-full" style={{ background: colors[selected.type] }} />
-                {TYPE_LABEL[selected.type]} · {selected.status.replace(/-/g, " ")}
+                {TYPE_LABEL[selected.type]}, {statusLabel(selected.status).toLowerCase()}
               </span>
               <button onClick={clearSelection} aria-label="Close" className="text-muted-foreground hover:text-foreground">
                 <X className="h-4 w-4" />
@@ -218,7 +247,7 @@ export default function KnowledgeGraph3D({ nodes, links, compact = false }: { no
               Connected to {neighbors.get(selected.id)?.size ?? 0} {neighbors.get(selected.id)?.size === 1 ? "item" : "items"}
             </p>
             <Link href={selected.href} className="group mt-3 inline-flex items-center text-sm font-medium underline-offset-4 hover:underline">
-              Open <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              Open {TYPE_LABEL[selected.type].toLowerCase()}
             </Link>
           </motion.div>
         )}

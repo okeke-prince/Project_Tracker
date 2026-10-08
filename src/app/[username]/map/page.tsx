@@ -44,7 +44,7 @@ export default async function ProfileMapPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="surface relative h-[65vh] min-h-[400px] overflow-hidden rounded-2xl border bg-card dark:bg-card/40 sm:h-[75vh] sm:min-h-[520px]">
+      <div className="surface relative h-[65vh] min-h-[400px] overflow-hidden border bg-card dark:bg-card/40 sm:h-[75vh] sm:min-h-[520px]">
         {graph.nodes.length > 0 ? (
           <KnowledgeGraph nodes={graph.nodes} links={graph.links} />
         ) : (
