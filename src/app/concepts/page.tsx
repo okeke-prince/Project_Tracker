@@ -3,10 +3,18 @@ import { concepts } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Compass } from "lucide-react";
+import { Compass, Plus } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/session";
+import { getKnowledgeGraph } from "@/db/queries";
+import { KnowledgeGraph } from "@/components/knowledge-graph";
+import { buttonVariants } from "@/components/ui/button";
 
 export default async function ConceptsPage() {
-  const allConcepts = await db.select().from(concepts);
+  const userId = await requireUserId();
+  const allConcepts = await db.select().from(concepts).where(eq(concepts.userId, userId));
+  const graph = await getKnowledgeGraph(userId);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -21,10 +29,27 @@ export default async function ConceptsPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Concepts Map</h1>
-          <p className="text-muted-foreground mt-2">Architecture concepts and patterns you are learning.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Concepts map</h1>
+          <p className="text-muted-foreground mt-2">Architecture concepts and patterns you are learning, and how they connect to your books and projects.</p>
         </div>
       </div>
+
+      {allConcepts.length === 0 ? (
+        <EmptyState
+          art="concepts"
+          title="No concepts yet"
+          description="Add the patterns and ideas you're learning, then link them to the books that taught you and the projects where you used them."
+          action={
+            <Link href="/manage?tab=concepts" className={buttonVariants()}>
+              <Plus className="mr-2 h-4 w-4" /> Add a concept
+            </Link>
+          }
+        />
+      ) : (
+        <div className="surface relative h-[60vh] min-h-[380px] sm:h-[70vh] sm:min-h-[480px] overflow-hidden rounded-2xl border bg-card dark:bg-card/40">
+          <KnowledgeGraph nodes={graph.nodes} links={graph.links} />
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {allConcepts.map((concept) => (

@@ -3,10 +3,17 @@ import { books } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Book as BookIcon } from "lucide-react";
+import { Book as BookIcon, Plus } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { buttonVariants } from "@/components/ui/button";
+
+import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/session";
+import { statusLabel } from "@/lib/status";
 
 export default async function BooksPage() {
-  const allBooks = await db.select().from(books);
+  const userId = await requireUserId();
+  const allBooks = await db.select().from(books).where(eq(books.userId, userId));
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -21,10 +28,23 @@ export default async function BooksPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Books</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Books</h1>
           <p className="text-muted-foreground mt-2">Your reading list and references.</p>
         </div>
       </div>
+
+      {allBooks.length === 0 && (
+        <EmptyState
+          art="books"
+          title="No books yet"
+          description="Add the books you're reading or have finished. Your files and notes stay private."
+          action={
+            <Link href="/manage?tab=books" className={buttonVariants()}>
+              <Plus className="mr-2 h-4 w-4" /> Add a book
+            </Link>
+          }
+        />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {allBooks.map((book) => {
@@ -36,14 +56,22 @@ export default async function BooksPage() {
               <CardHeader className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <BookIcon className="h-4 w-4 text-muted-foreground" />
-                  <Badge variant="outline" className={`capitalize ${getStatusColor(book.status)}`}>
-                    {book.status.replace('-', ' ')}
+                  <Badge variant="outline" className={`${getStatusColor(book.status)}`}>
+                    {statusLabel(book.status)}
                   </Badge>
                 </div>
                 <CardTitle className="line-clamp-2">{book.title}</CardTitle>
                 <CardDescription>{book.authors}</CardDescription>
               </CardHeader>
               <CardContent>
+                {book.progress !== null && book.progress > 0 && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary" style={{ width: `${book.progress}%` }} />
+                    </div>
+                    <span className="text-xs text-muted-foreground font-medium">{book.progress}%</span>
+                  </div>
+                )}
                 <div className="flex gap-2 flex-wrap mt-2">
                   {book.tags && JSON.parse(book.tags).map((tag: string) => (
                     <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>

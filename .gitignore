@@ -44,3 +44,7 @@ next-env.d.ts
 *.db
 *.sqlite
 *.sqlite3
+
+# locally stored book files (private, served through /api/file)
+/storage
+*.db.*

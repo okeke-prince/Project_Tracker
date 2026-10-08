@@ -4,7 +4,11 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Compass, Book, ArrowLeft, Github } from "lucide-react";
+import { Compass, Book, ArrowLeft } from "lucide-react";
+import { RepoLink } from "@/components/repo-link";
+import { getCurrentUserId } from "@/lib/session";
+import { getOwner } from "@/db/queries";
+import { statusLabel } from "@/lib/status";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,6 +19,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!project) {
     notFound();
   }
+
+  const isOwner = (await getCurrentUserId()) === project.userId;
+  const owner = await getOwner(project.userId);
+  if (owner?.suspendedAt) notFound(); // suspended profiles are hidden everywhere
 
   // Fetch related concepts
   const relatedConceptsLinks = await db.select().from(conceptProjects).where(eq(conceptProjects.projectId, project.id));
@@ -39,29 +47,25 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Link href="/projects" className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
+      <Link href={isOwner ? "/projects" : `/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Projects
+        {isOwner ? "Back to Projects" : `Back to ${owner?.name || owner?.username}'s profile`}
       </Link>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Badge variant="outline" className={`capitalize text-sm px-3 py-1 ${getStatusColor(project.status)}`}>
-            {project.status.replace('-', ' ')}
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <Badge variant="outline" className={`text-sm px-3 py-1 ${getStatusColor(project.status)}`}>
+            {statusLabel(project.status)}
           </Badge>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {project.tags && JSON.parse(project.tags).map((tag: string) => (
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
           </div>
-          {project.repoUrl && (
-            <a href={project.repoUrl} target="_blank" rel="noreferrer" className="text-muted-foreground hover:text-foreground">
-              <Github className="h-5 w-5" />
-            </a>
-          )}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">{project.name}</h1>
-        <p className="text-xl text-muted-foreground">{project.description}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">{project.name}</h1>
+        <p className="text-lg sm:text-xl text-muted-foreground">{project.description}</p>
+        {project.repoUrl && <RepoLink url={project.repoUrl} variant="button" />}
       </div>
       
       {project.techStack && (
@@ -73,7 +77,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
       )}
 
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Lessons Learned</h3>
+        <h3 className="text-xl font-semibold">Lessons learned</h3>
         <div className="prose dark:prose-invert max-w-none">
           {project.lessonsLearned ? (
             <div>{project.lessonsLearned}</div>

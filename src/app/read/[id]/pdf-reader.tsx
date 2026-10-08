@@ -80,8 +80,8 @@ export function PdfReader({ bookId, fileUrl, title, initialPage = 1 }: PdfReader
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-r-none" onClick={goToPrevPage} disabled={currentPage <= 1}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-xs px-2 whitespace-nowrap">
-              {currentPage} / {numPages || "…"}
+            <span className="text-xs px-2 whitespace-nowrap text-center min-w-[100px]">
+              {currentPage} / {numPages || "…"} <span className="text-muted-foreground ml-1">({numPages > 0 ? Math.round((currentPage / numPages) * 100) : 0}%)</span>
             </span>
             <Button variant="ghost" size="icon" className="h-8 w-8 rounded-l-none" onClick={goToNextPage} disabled={currentPage >= numPages}>
               <ChevronRight className="h-4 w-4" />

@@ -52,12 +52,26 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="idea">Idea</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
+            <SelectItem value="in-progress">In progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="startedAt">Started on</Label>
+          <Input id="startedAt" name="startedAt" type="date" defaultValue={project?.createdAt?.slice(0, 10)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="completedAt">Completed on</Label>
+          <Input id="completedAt" name="completedAt" type="date" defaultValue={project?.completedAt ?? ""} />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground -mt-4">
+        These dates place the project on your timeline. GitHub projects default to the repo&apos;s creation date, and the completion date defaults to the day you mark it completed.
+      </p>
 
       <div className="space-y-2">
         <Label htmlFor="repoUrl">Repository URL</Label>
@@ -85,7 +99,7 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
       </div>
 
       <div className="space-y-2">
-        <Label>Linked Concepts</Label>
+        <Label>Linked concepts</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[120px]">
             <div className="space-y-2 p-2">
@@ -108,7 +122,7 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
       </div>
       
       <div className="space-y-2">
-        <Label>Linked Books</Label>
+        <Label>Linked books</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[120px]">
             <div className="space-y-2 p-2">
@@ -131,7 +145,7 @@ export function ProjectForm({ project, concepts, books, onSuccess }: ProjectForm
       </div>
 
       <div className="pt-4 border-t flex justify-end">
-        <SubmitButton>{project ? 'Update Project' : 'Add Project'}</SubmitButton>
+        <SubmitButton>{project ? 'Save changes' : 'Add project'}</SubmitButton>
       </div>
     </form>
   );

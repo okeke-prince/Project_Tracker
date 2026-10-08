@@ -2,13 +2,15 @@
 
 import { db } from "@/db";
 import { books } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { getActionUserId } from "@/lib/session";
 import { revalidatePath } from "next/cache";
 
 export async function syncBookProgress(bookId: string, percentage: number, locationCfi: string) {
   try {
     // Only update status to reading if it was want-to-read, and finished if 100%
-    const result = await db.select().from(books).where(eq(books.id, bookId));
+    const userId = await getActionUserId();
+    const result = await db.select().from(books).where(and(eq(books.id, bookId), eq(books.userId, userId)));
     const currentBook = result[0];
     
     if (!currentBook) return { success: false, error: "Book not found" };
@@ -16,8 +18,12 @@ export async function syncBookProgress(bookId: string, percentage: number, locat
     let newStatus = currentBook.status;
     if (percentage > 0 && currentBook.status === 'want-to-read') newStatus = 'reading';
     if (percentage === 100) newStatus = 'finished';
+    const finishedAt = newStatus === 'finished'
+      ? (currentBook.finishedAt || new Date().toISOString().slice(0, 10))
+      : currentBook.finishedAt;
 
     await db.update(books).set({
+      finishedAt,
       progress: Math.round(percentage),
       lastLocation: locationCfi,
       status: newStatus,

@@ -9,6 +9,7 @@ As a software engineer, learning isn't just about reading a book; it's about und
 - **Map Architecture Concepts:** Define patterns, system design principles, and concepts.
 - **Track Projects:** Log the practical implementations where you've applied these concepts.
 - **Connect Everything:** A many-to-many relationship system lets you see exactly which books taught you which concepts, and which projects utilize them.
+- **Share Your Timeline:** Anyone can sign up and gets a public profile at `/<username>` with a timeline of their milestones (graduations, certifications, jobs), finished books and shipped projects. Book files, reading progress and notes stay private to their owner.
 
 ## 🛠 Tech Stack
 
@@ -55,6 +56,11 @@ AUTH_GOOGLE_SECRET="your_google_client_secret"
 Push the Drizzle schema to your local SQLite database:
 ```bash
 npx drizzle-kit push
+```
+
+Upgrading a database from before multi-user support? Run the one-off migration instead. It backs up `sqlite.db` first and assigns existing data to your account:
+```bash
+node scripts/migrate-multi-user.mjs
 ```
 
 ### 4. Start the Development Server

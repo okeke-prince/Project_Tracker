@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { books } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { EpubReader } from "./epub-reader";
 import { PdfReader } from "./pdf-reader";
@@ -9,11 +9,13 @@ import { auth } from "@/auth";
 export default async function ReadBookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session) {
+  const userId = session?.user?.id;
+  if (!userId) {
     redirect("/login");
   }
 
-  const result = await db.select().from(books).where(eq(books.id, id));
+  // Only the owner can read a book's file.
+  const result = await db.select().from(books).where(and(eq(books.id, id), eq(books.userId, userId)));
   const book = result[0];
 
   const fileUrl = book?.fileUrl;

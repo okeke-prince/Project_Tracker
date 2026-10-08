@@ -1,7 +1,9 @@
 import NextAuth from 'next-auth';
 import authConfig from './auth.config';
 
-export const { auth: middleware } = NextAuth(authConfig);
+// Next.js needs the middleware to be a plain function export it can see without running the file.
+const { auth } = NextAuth(authConfig);
+export default auth;
 
 export const config = {
   // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher

@@ -79,7 +79,7 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
               <SelectValue placeholder="Select a status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="want-to-read">Want to Read</SelectItem>
+              <SelectItem value="want-to-read">Want to read</SelectItem>
               <SelectItem value="reading">Reading</SelectItem>
               <SelectItem value="finished">Finished</SelectItem>
               <SelectItem value="reference">Reference</SelectItem>
@@ -93,17 +93,23 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="finishedAt">Finished on</Label>
+        <Input id="finishedAt" name="finishedAt" type="date" defaultValue={book?.finishedAt ?? ""} />
+        <p className="text-xs text-muted-foreground">Shown on your timeline for finished books. Defaults to the day you mark it finished.</p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="tags">Tags (comma separated)</Label>
         <Input id="tags" name="tags" defaultValue={book?.tags ? JSON.parse(book.tags).join(', ') : ''} placeholder="architecture, clean-code" />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes (Markdown)</Label>
+        <Label htmlFor="notes">Private notes (Markdown)</Label>
         <Textarea id="notes" name="notes" rows={5} defaultValue={book?.notes} className="font-mono text-sm" />
       </div>
 
       <div className="space-y-2">
-        <Label>Linked Concepts</Label>
+        <Label>Linked concepts</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[150px]">
             <div className="space-y-2 p-2">
@@ -128,7 +134,7 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
       </div>
 
       <div className="space-y-2">
-        <Label>Linked Projects</Label>
+        <Label>Linked projects</Label>
         <div className="border rounded-md p-2">
           <ScrollArea className="h-[150px]">
             <div className="space-y-2 p-2">
@@ -153,7 +159,7 @@ export function BookForm({ book, concepts, projects, onSuccess }: BookFormProps)
       </div>
 
       <div className="pt-4 border-t flex justify-end">
-        <SubmitButton>{book ? 'Update Book' : 'Add Book'}</SubmitButton>
+        <SubmitButton>{book ? 'Save changes' : 'Add book'}</SubmitButton>
       </div>
     </form>
   );

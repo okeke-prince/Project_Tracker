@@ -3,10 +3,16 @@ import { projects } from "@/db/schema";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { Folder } from "lucide-react";
+import { Folder, Plus } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { buttonVariants } from "@/components/ui/button";
+import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/session";
+import { statusLabel } from "@/lib/status";
 
 export default async function ProjectsPage() {
-  const allProjects = await db.select().from(projects);
+  const userId = await requireUserId();
+  const allProjects = await db.select().from(projects).where(eq(projects.userId, userId));
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -21,10 +27,23 @@ export default async function ProjectsPage() {
     <div className="space-y-8">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Projects</h1>
           <p className="text-muted-foreground mt-2">Applying concepts into practice.</p>
         </div>
       </div>
+
+      {allProjects.length === 0 && (
+        <EmptyState
+          art="projects"
+          title="No projects yet"
+          description="Add what you've built or are building, and link the concepts you used."
+          action={
+            <Link href="/manage?tab=projects" className={buttonVariants()}>
+              <Plus className="mr-2 h-4 w-4" /> Add a project
+            </Link>
+          }
+        />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
         {allProjects.map((project) => (
@@ -33,8 +52,8 @@ export default async function ProjectsPage() {
               <CardHeader className="flex-1">
                 <div className="flex items-center justify-between mb-2">
                   <Folder className="h-4 w-4 text-muted-foreground" />
-                  <Badge variant="outline" className={`capitalize ${getStatusColor(project.status)}`}>
-                    {project.status.replace('-', ' ')}
+                  <Badge variant="outline" className={`${getStatusColor(project.status)}`}>
+                    {statusLabel(project.status)}
                   </Badge>
                 </div>
                 <CardTitle className="line-clamp-1">{project.name}</CardTitle>

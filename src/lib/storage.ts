@@ -23,6 +23,19 @@ function isS3Configured() {
   );
 }
 
+/**
+ * Where a locally stored book file lives on disk. New uploads go to ./storage, outside
+ * public/, so the only way to fetch them is the owner-checked /api/file route.
+ * Older uploads under public/uploads are still found.
+ */
+export function localFilePath(fileUrl: string): string {
+  if (fileUrl.startsWith("local://")) {
+    const key = fileUrl.replace("local://", "");
+    return path.join(process.cwd(), "storage", path.dirname(key), path.basename(key));
+  }
+  return path.join(process.cwd(), "public", fileUrl);
+}
+
 export async function uploadBookFile(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
@@ -45,12 +58,12 @@ export async function uploadBookFile(file: File): Promise<string> {
     // Store the S3 key in the DB (not a public URL, since the bucket is private)
     return `s3://books/${uniqueFilename}`;
   } else {
-    // Local Fallback Strategy
-    const publicUploadDir = path.join(process.cwd(), "public", "uploads", "books");
-    await fs.mkdir(publicUploadDir, { recursive: true });
-    const filePath = path.join(publicUploadDir, uniqueFilename);
+    // Local Fallback Strategy (private folder, served only through /api/file)
+    const fileUrl = `local://books/${uniqueFilename}`;
+    const filePath = localFilePath(fileUrl);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, buffer);
-    return `/uploads/books/${uniqueFilename}`;
+    return fileUrl;
   }
 }
 
@@ -76,8 +89,8 @@ export async function deleteBookFile(fileUrl: string): Promise<void> {
     });
     await getS3Client().send(command);
   } else {
-    // Local file — derive absolute path from relative URL
-    const localPath = path.join(process.cwd(), "public", fileUrl);
+    // Local file
+    const localPath = localFilePath(fileUrl);
     await fs.unlink(localPath).catch(() => {
       // Ignore if file not found
     });
@@ -113,4 +126,116 @@ export async function resolveFileUrl(fileUrl: string): Promise<string> {
 
   // Local file, return as-is
   return fileUrl;
+}
+
+// ---------------------------------------------------------------------------
+// Profile pictures. Unlike book files these are public, served by /api/avatar/<userId>.
+// Each user has one file at a fixed key, overwritten on every upload.
+// ---------------------------------------------------------------------------
+
+export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+export const AVATAR_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+
+const avatarKey = (userId: string) => `avatars/${path.basename(userId)}`;
+
+export async function uploadAvatar(userId: string, file: File): Promise<void> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  if (isS3Configured()) {
+    await getS3Client().send(new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET_NAME!,
+      Key: avatarKey(userId),
+      Body: buffer,
+      ContentType: file.type,
+    }));
+  } else {
+    const filePath = localFilePath(`local://${avatarKey(userId)}`);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, buffer);
+  }
+}
+
+export async function readAvatar(userId: string): Promise<{ body: Buffer; contentType: string } | null> {
+  try {
+    let body: Buffer;
+    let contentType: string | undefined;
+    if (isS3Configured()) {
+      const response = await getS3Client().send(new GetObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME!,
+        Key: avatarKey(userId),
+      }));
+      if (!response.Body) return null;
+      body = Buffer.from(await response.Body.transformToByteArray());
+      contentType = response.ContentType;
+    } else {
+      body = await fs.readFile(localFilePath(`local://${avatarKey(userId)}`));
+    }
+    return { body, contentType: contentType || sniffImageType(body) };
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteAvatar(userId: string): Promise<void> {
+  if (isS3Configured()) {
+    await getS3Client().send(new DeleteObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: avatarKey(userId) }));
+  } else {
+    await fs.unlink(localFilePath(`local://${avatarKey(userId)}`)).catch(() => {});
+  }
+}
+
+// ---------------------------------------------------------------------------
+// CVs. Public like avatars, served by /api/cv/<username>. One PDF per user at a fixed key.
+// ---------------------------------------------------------------------------
+
+export const CV_MAX_BYTES = 5 * 1024 * 1024;
+
+const cvKey = (userId: string) => `cvs/${path.basename(userId)}.pdf`;
+
+/** True when the bytes start like a PDF file, whatever the browser claimed the type was. */
+export function isPdf(bytes: Uint8Array): boolean {
+  return Buffer.from(bytes.subarray(0, 5)).toString("latin1") === "%PDF-";
+}
+
+export async function uploadCv(userId: string, file: File): Promise<void> {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  if (isS3Configured()) {
+    await getS3Client().send(new PutObjectCommand({
+      Bucket: process.env.S3_BUCKET_NAME!,
+      Key: cvKey(userId),
+      Body: buffer,
+      ContentType: "application/pdf",
+    }));
+  } else {
+    const filePath = localFilePath(`local://${cvKey(userId)}`);
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, buffer);
+  }
+}
+
+export async function readCv(userId: string): Promise<Buffer | null> {
+  try {
+    if (isS3Configured()) {
+      const response = await getS3Client().send(new GetObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: cvKey(userId) }));
+      return response.Body ? Buffer.from(await response.Body.transformToByteArray()) : null;
+    }
+    return await fs.readFile(localFilePath(`local://${cvKey(userId)}`));
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteCv(userId: string): Promise<void> {
+  if (isS3Configured()) {
+    await getS3Client().send(new DeleteObjectCommand({ Bucket: process.env.S3_BUCKET_NAME!, Key: cvKey(userId) }));
+  } else {
+    await fs.unlink(localFilePath(`local://${cvKey(userId)}`)).catch(() => {});
+  }
+}
+
+function sniffImageType(bytes: Buffer): string {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50) return "image/png";
+  if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
+  if (bytes.subarray(0, 3).toString() === "GIF") return "image/gif";
+  if (bytes.subarray(8, 12).toString() === "WEBP") return "image/webp";
+  return "application/octet-stream";
 }

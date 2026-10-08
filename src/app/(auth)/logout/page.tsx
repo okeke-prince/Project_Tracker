@@ -1,7 +1,9 @@
 "use client";
 
 import { handleSignOut } from "@/app/actions/auth";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { LogOut } from "lucide-react";
 
@@ -29,9 +31,9 @@ export default function LogoutPage() {
           </form>
         </CardContent>
         <CardFooter className="flex justify-center border-t p-6">
-          <Button asChild variant="ghost" className="w-full">
-            <a href="/">Cancel and return to dashboard</a>
-          </Button>
+          <Link href="/" className={cn(buttonVariants({ variant: "ghost" }), "w-full")}>
+            Cancel and return to dashboard
+          </Link>
         </CardFooter>
       </Card>
     </div>

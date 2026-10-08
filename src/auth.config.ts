@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
+import GitHub from 'next-auth/providers/github';
 import Credentials from 'next-auth/providers/credentials';
 
 export default {
@@ -7,6 +8,10 @@ export default {
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
+    GitHub({
+      clientId: process.env.AUTH_GITHUB_ID,
+      clientSecret: process.env.AUTH_GITHUB_SECRET,
     }),
     Credentials({
       name: 'Credentials',
@@ -22,27 +27,28 @@ export default {
   ],
   pages: {
     signIn: '/login',
+    // Sign-in errors (like an email already used with a password) come back to the login page.
+    error: '/login',
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
       const isOnManage = nextUrl.pathname.startsWith('/manage');
       
-      const isProtectedRoute = isOnDashboard || isOnManage;
+      const isProtectedRoute = isOnManage;
 
       if (isProtectedRoute) {
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
       } else if (isLoggedIn && (nextUrl.pathname === '/login' || nextUrl.pathname === '/register')) {
-        return Response.redirect(new URL('/dashboard', nextUrl));
+        return Response.redirect(new URL('/', nextUrl));
       }
       return true;
     },
-    async session({ session, token, user }) {
-      // Send properties to the client, like an access_token and user id from a provider.
-      if (user && session.user) {
-        session.user.id = user.id;
+    async session({ session, token }) {
+      // With the JWT strategy there is no `user` here; the user id lives in token.sub.
+      if (token?.sub && session.user) {
+        session.user.id = token.sub;
       }
       return session;
     }

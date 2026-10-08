@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-bricolage);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-bricolage);
+  --color-mark: var(--mark);
+  --color-mark-foreground: var(--mark-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,72 +51,79 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Light: clean paper and dark blue-black ink. "Mark" is the one accent: a ballpoint blue
+     used only for things that are done (shipped, certified) and for the timeline line. */
+  --background: oklch(0.99 0.002 250);
+  --foreground: oklch(0.2 0.02 262);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.2 0.02 262);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.2 0.02 262);
+  --primary: oklch(0.2 0.02 262);
+  --primary-foreground: oklch(0.99 0.002 250);
+  --secondary: oklch(0.955 0.006 260);
+  --secondary-foreground: oklch(0.2 0.02 262);
+  --muted: oklch(0.955 0.006 260);
+  --muted-foreground: oklch(0.47 0.018 262);
+  --accent: oklch(0.955 0.006 260);
+  --accent-foreground: oklch(0.2 0.02 262);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.9 0.008 262);
+  --input: oklch(0.88 0.008 262);
+  --ring: oklch(0.5 0.19 262);
+  --mark: oklch(0.5 0.19 262);
+  --mark-foreground: oklch(0.99 0.002 250);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.975 0.004 260);
+  --sidebar-foreground: oklch(0.2 0.02 262);
+  --sidebar-primary: oklch(0.2 0.02 262);
+  --sidebar-primary-foreground: oklch(0.99 0.002 250);
+  --sidebar-accent: oklch(0.955 0.006 260);
+  --sidebar-accent-foreground: oklch(0.2 0.02 262);
+  --sidebar-border: oklch(0.9 0.008 262);
+  --sidebar-ring: oklch(0.5 0.19 262);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Dark: deep ink blue rather than a neutral near-black, with the same blue mark, lifted. */
+  --background: oklch(0.185 0.022 262);
+  --foreground: oklch(0.96 0.006 260);
+  --card: oklch(0.22 0.024 262);
+  --card-foreground: oklch(0.96 0.006 260);
+  --popover: oklch(0.22 0.024 262);
+  --popover-foreground: oklch(0.96 0.006 260);
+  --primary: oklch(0.96 0.006 260);
+  --primary-foreground: oklch(0.2 0.022 262);
+  --secondary: oklch(0.26 0.024 262);
+  --secondary-foreground: oklch(0.96 0.006 260);
+  --muted: oklch(0.26 0.024 262);
+  --muted-foreground: oklch(0.74 0.018 262);
+  --accent: oklch(0.26 0.024 262);
+  --accent-foreground: oklch(0.96 0.006 260);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.74 0.14 262);
+  --mark: oklch(0.74 0.14 262);
+  --mark-foreground: oklch(0.185 0.022 262);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.22 0.024 262);
+  --sidebar-foreground: oklch(0.96 0.006 260);
+  --sidebar-primary: oklch(0.74 0.14 262);
+  --sidebar-primary-foreground: oklch(0.185 0.022 262);
+  --sidebar-accent: oklch(0.26 0.024 262);
+  --sidebar-accent-foreground: oklch(0.96 0.006 260);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.74 0.14 262);
 }
 
 @layer base {
@@ -127,4 +136,149 @@
   html {
     @apply font-sans;
   }
+}
+@layer utilities {
+  /* The display voice: Bricolage at its narrowest width and heavy weight. Used for the
+     page's big moments only (names, the landing headline, the timeline's years). */
+  .font-display {
+    font-family: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+    font-variation-settings: "wdth" 75;
+    font-weight: 750;
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+  }
+
+  /* Cards on the light background get a hairline shadow; dark mode relies on borders. */
+  .surface {
+    box-shadow: 0 1px 2px oklch(0.2 0.02 262 / 0.05);
+  }
+  .dark .surface {
+    box-shadow: none;
+  }
+}
+
+/* The landing page's one moment: the sample timeline's line draws down and its entries
+   appear in turn. Pure CSS, so the content is there without JavaScript, and skipped
+   entirely for people who ask for reduced motion. */
+@keyframes draw-down {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-draw-down {
+  transform-origin: top;
+  animation: draw-down 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+.animate-appear {
+  animation: appear 0.6s ease-out both;
+}
+
+/* Gentle bob for empty-state illustrations. */
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-empty-float {
+  animation: empty-float 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-empty-float,
+  .animate-draw-down,
+  .animate-appear { animation: none; }
+}
+
+/* Background shapes (components/background-shapes.tsx). Light mode is ink, indigo and soft
+   grey; dark mode is indigo and lavender with white outlines. */
+:root {
+  --shape-ink: oklch(0.26 0.02 262);
+  --shape-accent: oklch(0.59 0.2 277);
+  --shape-accent-2: oklch(0.72 0.13 280);
+  --shape-soft: oklch(0.93 0.004 262);
+  --shape-line: oklch(0.26 0.02 262);
+}
+.dark {
+  --shape-ink: oklch(0.32 0.03 262);
+  --shape-accent: oklch(0.55 0.19 287);
+  --shape-accent-2: oklch(0.7 0.14 282);
+  --shape-soft: oklch(0.26 0.03 265);
+  --shape-line: oklch(0.96 0.01 262);
+}
+
+/* Clear in the middle where the content sits, full strength toward the edges. Softer
+   below 1400px, where the margins are narrow and shapes can reach the text. */
+.bg-shapes {
+  opacity: 0.55;
+  -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 52%, transparent 40%, #000 95%);
+  mask-image: radial-gradient(ellipse 62% 58% at 50% 52%, transparent 40%, #000 95%);
+}
+@media (min-width: 1400px) {
+  .bg-shapes { opacity: 1; }
+}
+
+.bg-dots {
+  background-image: radial-gradient(currentColor 1.6px, transparent 2px);
+  background-size: 16px 16px;
+}
+.bg-halftone {
+  background-image: radial-gradient(currentColor 2px, transparent 2.5px);
+  background-size: 9px 9px;
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 0%, transparent 70%);
+}
+
+@keyframes shape-in {
+  from { opacity: 0; transform: scale(0.6) translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes shape-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+@keyframes shape-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(28px); }
+}
+@keyframes shape-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes shape-sway {
+  0%, 100% { transform: rotate(-3deg) scale(1); }
+  50% { transform: rotate(3deg) scale(1.05); }
+}
+@keyframes shape-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.bg-shape {
+  animation: shape-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--in, 0ms) both;
+}
+.bg-shape-float { animation: shape-float var(--t) ease-in-out var(--delay) infinite; }
+.bg-shape-drift { animation: shape-drift var(--t) ease-in-out var(--delay) infinite; }
+.bg-shape-spin { animation: shape-spin var(--t) linear var(--delay) infinite; }
+.bg-shape-sway { animation: shape-sway var(--t) ease-in-out var(--delay) infinite; }
+.bg-shape-twinkle { animation: shape-twinkle var(--t) ease-in-out var(--delay) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-shape,
+  .bg-shape-float,
+  .bg-shape-drift,
+  .bg-shape-spin,
+  .bg-shape-sway,
+  .bg-shape-twinkle { animation: none; }
+}
+
+/* Home page widgets: the growth illustration's bars rise once on load. */
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+}
+.widget-bar {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .widget-bar { animation: none; }
 }

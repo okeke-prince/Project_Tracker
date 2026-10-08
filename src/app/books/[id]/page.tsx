@@ -5,8 +5,12 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Compass, Folder, ArrowLeft, Star, FileText } from "lucide-react";
+import { getCurrentUserId } from "@/lib/session";
+import { getOwner } from "@/db/queries";
+import { statusLabel } from "@/lib/status";
 
 export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const viewerId = await getCurrentUserId();
   const { id } = await params;
   const result = await db.select().from(books).where(eq(books.id, id));
   const book = result[0];
@@ -14,6 +18,10 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
   if (!book) {
     notFound();
   }
+
+  const isOwner = viewerId === book.userId;
+  const owner = await getOwner(book.userId);
+  if (owner?.suspendedAt) notFound(); // suspended profiles are hidden everywhere
 
   // Fetch related concepts
   const conceptLinks = await db.select().from(bookConcepts).where(eq(bookConcepts.bookId, book.id));
@@ -44,17 +52,17 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <Link href="/books" className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
+      <Link href={isOwner ? "/books" : `/${owner?.username}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center transition-colors">
         <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Books
+        {isOwner ? "Back to Books" : `Back to ${owner?.name || owner?.username}'s profile`}
       </Link>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Badge variant="outline" className={`capitalize text-sm px-3 py-1 ${getStatusColor(book.status)}`}>
-            {book.status.replace('-', ' ')}
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <Badge variant="outline" className={`text-sm px-3 py-1 ${getStatusColor(book.status)}`}>
+            {statusLabel(book.status)}
           </Badge>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {book.tags && JSON.parse(book.tags).map((tag: string) => (
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
@@ -67,10 +75,17 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
             </div>
           )}
         </div>
-        <h1 className="text-4xl font-bold tracking-tight">{book.title}</h1>
-        <p className="text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-balance">{book.title}</h1>
+        <p className="text-lg sm:text-xl text-muted-foreground">by {book.authors} {book.year ? `(${book.year})` : ''}</p>
+        {!isOwner && owner?.username && (
+          <p className="text-sm text-muted-foreground">
+            On <Link href={`/${owner.username}`} className="text-primary hover:underline">{owner.name || owner.username}</Link>&apos;s shelf
+            {book.finishedAt && <>, finished {book.finishedAt}</>}
+          </p>
+        )}
         
-        {book.fileUrl && (
+        {/* Reading and downloading are for the owner only. */}
+        {isOwner && book.fileUrl && (
           <div className="pt-2">
             {book.fileUrl.includes('.epub') ? (
               <Link 
@@ -93,13 +108,16 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
         )}
       </div>
 
-      <div className="prose dark:prose-invert max-w-none">
-        {book.notes ? (
-          <div>{book.notes}</div>
-        ) : (
-          <p className="text-muted-foreground italic">No notes added yet.</p>
-        )}
-      </div>
+      {/* Notes are private to the owner. */}
+      {isOwner && (
+        <div className="prose dark:prose-invert max-w-none">
+          {book.notes ? (
+            <div>{book.notes}</div>
+          ) : (
+            <p className="text-muted-foreground italic">No notes added yet.</p>
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-8 pt-8 border-t">
         <div className="space-y-4">
@@ -134,7 +152,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
                 <li key={project.id}>
                   <Link href={`/projects/${project.id}`} className="block p-3 rounded-lg border bg-card hover:border-primary/50 transition-colors">
                     <div className="font-medium">{project.name}</div>
-                    <div className="text-sm text-muted-foreground capitalize">{project.status.replace('-', ' ')}</div>
+                    <div className="text-sm text-muted-foreground">{statusLabel(project.status)}</div>
                   </Link>
                 </li>
               ))}
