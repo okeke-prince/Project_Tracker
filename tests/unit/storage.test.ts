@@ -1,6 +1,6 @@
-import fs from "fs/promises";
-import os from "os";
-import path from "path";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { CV_MAX_BYTES, deleteCv, isPdf, readCv, uploadCv } from "@/lib/storage";
 

@@ -1,11 +1,7 @@
 # One pipeline for every push and pull request to main:
 #   1. Build and test on Node 20 and 22
 #   2. CodeQL security scan (runs alongside the tests, and weekly on its own)
-<<<<<<< Updated upstream
-#   3. SonarQube analysis, once the tests pass
-=======
 #   3. SonarCloud analysis, once the tests pass
->>>>>>> Stashed changes
 name: CI
 
 on:
@@ -20,6 +16,9 @@ on:
 permissions:
   contents: read
 
+# Third-party actions are pinned to full commit SHAs (version in the comment) so a
+# moved tag can't change what runs.
+
 jobs:
   test:
     name: Build and test (Node ${{ matrix.node-version }})
@@ -27,19 +26,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Next.js 16 needs Node 20.9 or newer, so Node 18 is left out.
-        node-version: [20.x, 22.x]
+        # better-sqlite3 13 needs Node 22 or newer (on Node 20 it crashes), so test on 22 and 24.
+        node-version: [22.x, 24.x]
     env:
       # next build loads the auth config; a throwaway secret is enough to build.
       AUTH_SECRET: ci-build-only
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npm ci
+      # Skip install scripts from dependencies, then build the one that needs it
+      # (better-sqlite3 fetches its native SQLite binding during install).
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild better-sqlite3
       - run: npm test
       - run: npm run build
 
@@ -60,51 +62,23 @@ jobs:
           - language: javascript-typescript
             build-mode: none
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
           category: "/language:${{ matrix.language }}"
 
-<<<<<<< Updated upstream
-  sonarqube:
-    name: SonarQube analysis
-=======
   sonarcloud:
     name: SonarCloud analysis
->>>>>>> Stashed changes
     needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
-<<<<<<< Updated upstream
-      pull-requests: read   # lets SonarQube comment on pull requests
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-    steps:
-      - name: Skip when SonarQube isn't set up yet
-        if: env.SONAR_TOKEN == '' || env.SONAR_HOST_URL == ''
-        run: echo "::notice::Add the SONAR_TOKEN and SONAR_HOST_URL repository secrets to turn on SonarQube analysis."
-      - uses: actions/checkout@v4
-        if: env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != ''
-        with:
-          fetch-depth: 0   # full history gives SonarQube accurate blame and new-code detection
-      - name: Analyze with SonarQube
-        if: env.SONAR_TOKEN != '' && env.SONAR_HOST_URL != ''
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=okeke-prince_Project_Tracker
-            -Dsonar.exclusions=**/node_modules/**,**/.next/**
-=======
       pull-requests: read   # lets SonarCloud comment on pull requests
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -112,15 +86,14 @@ jobs:
       - name: Skip when SonarCloud isn't set up yet
         if: env.SONAR_TOKEN == ''
         run: echo "::notice::Add the SONAR_TOKEN repository secret to turn on SonarCloud analysis."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         if: env.SONAR_TOKEN != ''
         with:
           fetch-depth: 0   # full history gives SonarCloud accurate blame and new-code detection
       - name: Analyze with SonarCloud
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@2f77a1ec69fb1d595b06f35ab27e97605bdef703 # v5.3.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
         # Project settings live in sonar-project.properties at the repo root.
->>>>>>> Stashed changes
