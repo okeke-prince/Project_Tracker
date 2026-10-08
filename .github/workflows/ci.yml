@@ -1,7 +1,11 @@
 # One pipeline for every push and pull request to main:
 #   1. Build and test on Node 20 and 22
 #   2. CodeQL security scan (runs alongside the tests, and weekly on its own)
+<<<<<<< Updated upstream
 #   3. SonarQube analysis, once the tests pass
+=======
+#   3. SonarCloud analysis, once the tests pass
+>>>>>>> Stashed changes
 name: CI
 
 on:
@@ -67,12 +71,18 @@ jobs:
         with:
           category: "/language:${{ matrix.language }}"
 
+<<<<<<< Updated upstream
   sonarqube:
     name: SonarQube analysis
+=======
+  sonarcloud:
+    name: SonarCloud analysis
+>>>>>>> Stashed changes
     needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
+<<<<<<< Updated upstream
       pull-requests: read   # lets SonarQube comment on pull requests
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -94,3 +104,23 @@ jobs:
           args: >
             -Dsonar.projectKey=okeke-prince_Project_Tracker
             -Dsonar.exclusions=**/node_modules/**,**/.next/**
+=======
+      pull-requests: read   # lets SonarCloud comment on pull requests
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: Skip when SonarCloud isn't set up yet
+        if: env.SONAR_TOKEN == ''
+        run: echo "::notice::Add the SONAR_TOKEN repository secret to turn on SonarCloud analysis."
+      - uses: actions/checkout@v4
+        if: env.SONAR_TOKEN != ''
+        with:
+          fetch-depth: 0   # full history gives SonarCloud accurate blame and new-code detection
+      - name: Analyze with SonarCloud
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+        # Project settings live in sonar-project.properties at the repo root.
+>>>>>>> Stashed changes
